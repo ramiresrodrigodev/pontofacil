@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PontoFácil – Sistema de RH</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+  :root{
+    --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d40;
+    --border:#2a3347;--border2:#3a4660;
+    --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+    --accent:#3b82f6;--accent2:#2563eb;--accent-bg:#1e3a5f;
+    --green:#22c55e;--green-bg:#14532d;
+    --yellow:#eab308;--yellow-bg:#422006;
+    --red:#ef4444;--red-bg:#450a0a;
+    --purple:#a855f7;--purple-bg:#3b0764;
+    --cyan:#06b6d4;--cyan-bg:#0c4a6e;
+  }
+  .app{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .logo{padding:20px 16px;border-bottom:1px solid var(--border)}
+  .logo-text{font-size:18px;font-weight:700;color:var(--accent)}
+  .logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .nav{padding:12px 8px;flex:1;overflow-y:auto}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;transition:all .15s}
+  .nav-item:hover{background:var(--bg3);color:var(--text)}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent)}
+  .nav-item i{font-size:16px;width:18px}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .topbar-title{font-size:16px;font-weight:600}
+  .topbar-actions{display:flex;gap:8px;align-items:center}
+  .content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:13px;cursor:pointer;border:none;font-weight:500;transition:all .15s}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent2)}
+  .btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+  .btn-secondary:hover{background:var(--bg4)}
+  .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+  .btn-sm{padding:4px 10px;font-size:12px}
+  .btn-success{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px}
+  .stat-label{font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-size:26px;font-weight:700;color:var(--text)}
+  .stat-sub{font-size:12px;color:var(--text3);margin-top:4px}
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+  .badge-green{background:var(--green-bg);color:var(--green)}
+  .badge-red{background:var(--red-bg);color:var(--red)}
+  .badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+  .badge-blue{background:var(--accent-bg);color:var(--accent)}
+  .badge-purple{background:var(--purple-bg);color:var(--purple)}
+  .badge-cyan{background:var(--cyan-bg);color:var(--cyan)}
+  .table{width:100%;border-collapse:collapse;font-size:13px}
+  .table th{text-align:left;padding:10px 12px;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:500}
+  .table td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+  .table tr:hover td{background:var(--bg3)}
+  .table tr:last-child td{border-bottom:none}
+  .input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px;outline:none}
+  .input:focus{border-color:var(--accent)}
+  .select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;appearance:none;cursor:pointer}
+  .form-group{margin-bottom:14px}
+  .form-label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000}
+  .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:500px;max-width:95vw;max-height:85vh;overflow-y:auto}
+  .modal-title{font-size:16px;font-weight:600;margin-bottom:20px}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+  .section-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+  .separator{border:none;border-top:1px solid var(--border);margin:20px 0}
+  .tabs{display:flex;gap:4px;background:var(--bg3);padding:4px;border-radius:8px;margin-bottom:20px}
+  .tab{padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);font-weight:500}
+  .tab.active{background:var(--bg2);color:var(--text)}
+  .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px}
+  .alert-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  .alert-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+  .alert-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow)}
+  .horas-bar{height:8px;border-radius:4px;background:var(--bg4);overflow:hidden;margin-top:6px}
+  .horas-fill{height:100%;border-radius:4px;transition:width .3s}
+  .empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
+  .empty-icon{font-size:40px;margin-bottom:12px;display:block}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+  .ponto-btn{padding:12px 8px;border-radius:6px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:none;transition:all .15s}
+  @media(max-width:900px){
+    .grid-4{grid-template-columns:1fr 1fr}
+    .grid-3{grid-template-columns:1fr 1fr}
+    .sidebar{width:60px}
+    .nav-item span{display:none}
+    .logo-text,.logo-sub{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect}=React;
+
+const initialFuncionarios=[
+  {id:1,nome:'Ana Lima',cargo:'Desenvolvedora',departamento:'TI',salario:8500,contrato:'CLT',status:'Ativo',email:'ana@empresa.com',telefone:'11 99999-0001',dataAdmissao:'2022-03-01',escala:'5x2'},
+  {id:2,nome:'Bruno Costa',cargo:'Designer',departamento:'Marketing',salario:6200,contrato:'CLT',status:'Ativo',email:'bruno@empresa.com',telefone:'11 99999-0002',dataAdmissao:'2021-07-15',escala:'5x2'},
+  {id:3,nome:'Carla Souza',cargo:'Analista Financeiro',departamento:'Financeiro',salario:7800,contrato:'CLT',status:'Ativo',email:'carla@empresa.com',telefone:'11 99999-0003',dataAdmissao:'2023-01-10',escala:'5x2'},
+  {id:4,nome:'Daniel Rocha',cargo:'Estágio em TI',departamento:'TI',salario:1800,contrato:'Estágio',status:'Ativo',email:'daniel@empresa.com',telefone:'11 99999-0004',dataAdmissao:'2024-02-01',escala:'5x2'},
+  {id:5,nome:'Emília Nunes',cargo:'Consultora PJ',departamento:'Comercial',salario:12000,contrato:'PJ',status:'Inativo',email:'emilia@empresa.com',telefone:'11 99999-0005',dataAdmissao:'2020-05-20',escala:'5x2'},
+];
+
+const initialPontos=[
+  {id:1,funcionarioId:1,data:'2025-06-02',entrada:'08:02',almocoSaida:'12:05',almocoRetorno:'13:10',saida:'17:30',status:'Completo'},
+  {id:2,funcionarioId:1,data:'2025-06-03',entrada:'08:15',almocoSaida:'12:00',almocoRetorno:'13:05',saida:'17:45',status:'Completo'},
+  {id:3,funcionarioId:2,data:'2025-06-02',entrada:'09:00',almocoSaida:'12:30',almocoRetorno:'13:30',saida:'18:00',status:'Completo'},
+  {id:4,funcionarioId:2,data:'2025-06-03',entrada:'09:20',almocoSaida:'12:30',almocoRetorno:'13:30',saida:'18:10',status:'Completo'},
+  {id:5,funcionarioId:3,data:'2025-06-03',entrada:'07:55',almocoSaida:'12:00',almocoRetorno:'13:00',saida:'17:00',status:'Completo'},
+];
+
+const initialFolgas=[
+  {id:1,funcionarioId:1,tipo:'Férias',inicio:'2025-07-01',fim:'2025-07-15',status:'Aprovado',obs:'Férias anuais'},
+  {id:2,funcionarioId:2,tipo:'Atestado',inicio:'2025-06-01',fim:'2025-06-01',status:'Aprovado',obs:'Consulta médica'},
+  {id:3,funcionarioId:3,tipo:'Folga semanal',inicio:'2025-06-07',fim:'2025-06-07',status:'Aprovado',obs:''},
+  {id:4,funcionarioId:4,tipo:'Banco de horas',inicio:'2025-06-05',fim:'2025-06-05',status:'Pendente',obs:'Compensação horas extras'},
+];
+
+const fmtDate=(d)=>d.toLocaleDateString('pt-BR');
+const fmtTime=(d)=>d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const fmtHoras=(min)=>{const h=Math.floor(min/60),m=min%60;return`${h}h${m>0?String(m).padStart(2,'0')+'min':''}`};
+const getIniciais=(nome)=>nome.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase();
+
+function App(){
+  const[page,setPage]=useState('dashboard');
+  const[funcionarios,setFuncionarios]=useState(initialFuncionarios);
+  const[pontos,setPontos]=useState(initialPontos);
+  const[folgas,setFolgas]=useState(initialFolgas);
+  const[pontoAtivo,setPontoAtivo]=useState({});
+  const[alert,setAlert]=useState(null);
+  const[clock,setClock]=useState(new Date());
+
+  useEffect(()=>{const t=setInterval(()=>setClock(new Date()),1000);return()=>clearInterval(t)},[]);
+  useEffect(()=>{if(alert){const t=setTimeout(()=>setAlert(null),3000);return()=>clearTimeout(t)}},[alert]);
+
+  const showAlert=(msg,type='green')=>setAlert({msg,type});
+
+  const pages=[
+    {id:'dashboard',icon:'ti-layout-dashboard',label:'Dashboard'},
+    {id:'funcionarios',icon:'ti-users',label:'Funcionários'},
+    {id:'ponto',icon:'ti-clock',label:'Controle de Ponto'},
+    {id:'escalas',icon:'ti-calendar-month',label:'Escalas'},
+    {id:'folgas',icon:'ti-beach',label:'Folgas'},
+    {id:'relatorios',icon:'ti-chart-bar',label:'Relatórios'},
+  ];
+
+  const ativosCount=funcionarios.filter(f=>f.status==='Ativo').length;
+  const totalMesMin=pontos.reduce((acc,p)=>{
+    if(!p.entrada||!p.saida)return acc;
+    const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+    let mins=toMin(p.saida)-toMin(p.entrada);
+    if(p.almocoSaida&&p.almocoRetorno)mins-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida));
+    return acc+mins;
+  },0);
+  const folgasPendentes=folgas.filter(f=>f.status==='Pendente').length;
+
+  return(
+    <div className="app">
+      <aside className="sidebar">
+        <div className="logo">
+          <div className="logo-text">PontoFácil</div>
+          <div className="logo-sub">Sistema de RH</div>
+        </div>
+        <nav className="nav">
+          {pages.map(p=>(
+            <div key={p.id} className={`nav-item${page===p.id?' active':''}`} onClick={()=>setPage(p.id)}>
+              <i className={`ti ${p.icon}`}></i>
+              <span>{p.label}</span>
+            </div>
+          ))}
+        </nav>
+        <div style={{padding:'12px 8px',borderTop:'1px solid var(--border)'}}>
+          <div className="nav-item">
+            <i className="ti ti-settings"></i>
+            <span>Configurações</span>
+          </div>
+        </div>
+      </aside>
+      <main className="main">
+        <div className="topbar">
+          <div className="topbar-title">{pages.find(p=>p.id===page)?.label}</div>
+          <div className="topbar-actions">
+            <span style={{fontSize:13,color:'var(--text3)'}}>{fmtDate(clock)} • {fmtTime(clock)}</span>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:600,marginLeft:8}}>GE</div>
+          </div>
+        </div>
+        {alert&&(
+          <div style={{padding:'0 24px',paddingTop:12}}>
+            <div className={`alert alert-${alert.type}`}>{alert.msg}</div>
+          </div>
+        )}
+        <div className="content">
+          {page==='dashboard'&&<Dashboard funcionarios={funcionarios} pontos={pontos} folgas={folgas} ativosCount={ativosCount} totalMesMin={totalMesMin} folgasPendentes={folgasPendentes}/>}
+          {page==='funcionarios'&&<Funcionarios funcionarios={funcionarios} setFuncionarios={setFuncionarios} showAlert={showAlert}/>}
+          {page==='ponto'&&<PontoDiario funcionarios={funcionarios} pontos={pontos} setPontos={setPontos} pontoAtivo={pontoAtivo} setPontoAtivo={setPontoAtivo} showAlert={showAlert} clock={clock}/>}
+          {page==='escalas'&&<Escalas funcionarios={funcionarios} setFuncionarios={setFuncionarios} showAlert={showAlert}/>}
+          {page==='folgas'&&<Folgas funcionarios={funcionarios} folgas={folgas} setFolgas={setFolgas} showAlert={showAlert}/>}
+          {page==='relatorios'&&<Relatorios funcionarios={funcionarios} pontos={pontos} folgas={folgas}/>}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function Dashboard({funcionarios,pontos,folgas,ativosCount,totalMesMin,folgasPendentes}){
+  const recentes=[...pontos].reverse().slice(0,5);
+  const proxFolgas=folgas.filter(f=>f.status==='Aprovado').slice(0,4);
+  return(
+    <div>
+      <div className="grid-4" style={{marginBottom:20}}>
+        <div className="stat-card"><div className="stat-label">Funcionários Ativos</div><div className="stat-value">{ativosCount}</div><div className="stat-sub">{funcionarios.length} total cadastrados</div></div>
+        <div className="stat-card"><div className="stat-label">Horas no Mês</div><div className="stat-value">{Math.floor(totalMesMin/60)}h</div><div className="stat-sub">Registradas nos pontos</div></div>
+        <div className="stat-card"><div className="stat-label">Folgas Pendentes</div><div className="stat-value" style={{color:folgasPendentes>0?'var(--yellow)':undefined}}>{folgasPendentes}</div><div className="stat-sub">Aguardando aprovação</div></div>
+        <div className="stat-card"><div className="stat-label">Registros de Ponto</div><div className="stat-value">{pontos.length}</div><div className="stat-sub">Total no período</div></div>
+      </div>
+      <div className="grid-2" style={{marginBottom:20}}>
+        <div className="card">
+          <div className="section-title">Últimos Registros de Ponto</div>
+          <table className="table">
+            <thead><tr><th>Funcionário</th><th>Data</th><th>Entrada</th><th>Saída</th></tr></thead>
+            <tbody>{recentes.map(p=>{
+              const f=funcionarios.find(f=>f.id===p.funcionarioId);
+              return(<tr key={p.id}><td><span style={{display:'inline-flex',width:26,height:26,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,marginRight:6}}>{f?getIniciais(f.nome):'?'}</span>{f?.nome}</td><td>{p.data}</td><td>{p.entrada}</td><td>{p.saida||<span className="badge badge-yellow">Em andamento</span>}</td></tr>);
+            })}</tbody>
+          </table>
+        </div>
+        <div className="card">
+          <div className="section-title">Próximas Folgas</div>
+          {proxFolgas.map(f=>{
+            const func=funcionarios.find(fu=>fu.id===f.funcionarioId);
+            return(<div key={f.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--border)'}}><div><div style={{fontSize:13,fontWeight:500}}>{func?.nome}</div><div style={{fontSize:12,color:'var(--text3)'}}>{f.inicio} • {f.tipo}</div></div><span className="badge badge-green">{f.status}</span></div>);
+          })}
+        </div>
+      </div>
+      <div className="card">
+        <div className="section-title">Equipe Ativa</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:10}}>
+          {funcionarios.filter(f=>f.status==='Ativo').map(f=>(<span key={f.id} className="chip"><span style={{display:'inline-flex',width:20,height:20,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:700}}>{getIniciais(f.nome)}</span>{f.nome} • {f.cargo}</span>))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Funcionarios({funcionarios,setFuncionarios,showAlert}){
+  const[modal,setModal]=useState(null);
+  const[form,setForm]=useState({nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'});
+  const[filtro,setFiltro]=useState('');
+  const[filtroStatus,setFiltroStatus]=useState('Todos');
+
+  const abrirNovo=()=>{setForm({nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'});setModal('novo')};
+  const abrirEditar=(f)=>{setForm({...f,salario:f.salario.toString()});setModal('editar')};
+  const salvar=()=>{
+    if(!form.nome||!form.cargo){showAlert('Preencha nome e cargo.','red');return}
+    if(modal==='novo'){setFuncionarios(prev=>[...prev,{...form,id:Date.now(),salario:Number(form.salario)||0}]);showAlert('Funcionário cadastrado!');}
+    else{setFuncionarios(prev=>prev.map(f=>f.id===form.id?{...form,salario:Number(form.salario)||0}:f));showAlert('Funcionário atualizado!');}
+    setModal(null);
+  };
+  const excluir=(id)=>{setFuncionarios(prev=>prev.filter(f=>f.id!==id));showAlert('Funcionário removido.','red')};
+  const lista=funcionarios.filter(f=>(filtroStatus==='Todos'||f.status===filtroStatus)&&(f.nome.toLowerCase().includes(filtro.toLowerCase())||f.cargo.toLowerCase().includes(filtro.toLowerCase())));
+
+  return(
+    <div>
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <input className="input" style={{flex:1}} placeholder="Buscar por nome ou cargo..." value={filtro} onChange={e=>setFiltro(e.target.value)}/>
+        <select className="select" style={{width:140}} value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)}><option>Todos</option><option>Ativo</option><option>Inativo</option></select>
+        <button className="btn btn-primary" onClick={abrirNovo}><i className="ti ti-plus"></i>Novo</button>
+      </div>
+      <div className="card" style={{padding:0}}>
+        <table className="table">
+          <thead><tr><th>Funcionário</th><th>Cargo</th><th>Departamento</th><th>Contrato</th><th>Salário</th><th>Escala</th><th>Status</th><th style={{textAlign:'right'}}>Ações</th></tr></thead>
+          <tbody>{lista.map(f=>(
+            <tr key={f.id}>
+              <td><div style={{display:'flex',alignItems:'center',gap:8}}><div style={{width:32,height:32,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{getIniciais(f.nome)}</div><div><div style={{fontWeight:500}}>{f.nome}</div><div style={{fontSize:12,color:'var(--text3)'}}>{f.email}</div></div></div></td>
+              <td>{f.cargo}</td><td>{f.departamento}</td>
+              <td><span className={`badge ${f.contrato==='CLT'?'badge-blue':f.contrato==='PJ'?'badge-purple':'badge-cyan'}`}>{f.contrato}</span></td>
+              <td>R$ {Number(f.salario).toLocaleString('pt-BR')}</td>
+              <td><span className="chip">{f.escala}</span></td>
+              <td><span className={`badge ${f.status==='Ativo'?'badge-green':'badge-red'}`}>{f.status}</span></td>
+              <td style={{textAlign:'right'}}><button className="btn btn-secondary btn-sm" style={{marginRight:4}} onClick={()=>abrirEditar(f)}><i className="ti ti-edit"></i></button><button className="btn btn-danger btn-sm" onClick={()=>excluir(f.id)}><i className="ti ti-trash"></i></button></td>
+            </tr>
+          ))}</tbody>
+        </table>
+        {lista.length===0&&<div className="empty-state"><span className="empty-icon">👤</span>Nenhum funcionário encontrado</div>}
+      </div>
+      {modal&&(
+        <div className="modal-overlay" onClick={()=>setModal(null)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-title">{modal==='novo'?'Novo Funcionário':'Editar Funcionário'}</div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Nome *</label><input className="input" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Cargo *</label><input className="input" value={form.cargo} onChange={e=>setForm({...form,cargo:e.target.value})}/></div>
+            </div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Departamento</label><input className="input" value={form.departamento} onChange={e=>setForm({...form,departamento:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Salário (R$)</label><input className="input" type="number" value={form.salario} onChange={e=>setForm({...form,salario:e.target.value})}/></div>
+            </div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Email</label><input className="input" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Telefone</label><input className="input" value={form.telefone} onChange={e=>setForm({...form,telefone:e.target.value})}/></div>
+            </div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Tipo de Contrato</label><select className="select" value={form.contrato} onChange={e=>setForm({...form,contrato:e.target.value})}><option>CLT</option><option>PJ</option><option>Estágio</option></select></div>
+              <div className="form-group"><label className="form-label">Escala</label><select className="select" value={form.escala} onChange={e=>setForm({...form,escala:e.target.value})}><option>5x2</option><option>6x1</option><option>12x36</option><option>Personalizada</option></select></div>
+            </div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Data de Admissão</label><input className="input" type="date" value={form.dataAdmissao} onChange={e=>setForm({...form,dataAdmissao:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Status</label><select className="select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option>Ativo</option><option>Inativo</option></select></div>
+            </div>
+            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setModal(null)}>Cancelar</button><button className="btn btn-primary" onClick={salvar}>Salvar</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PontoDiario({funcionarios,pontos,setPontos,pontoAtivo,setPontoAtivo,showAlert,clock}){
+  const[funcSelecionado,setFuncSelecionado]=useState('');
+  const[tabPonto,setTabPonto]=useState('registrar');
+  const[modalManual,setModalManual]=useState(false);
+  const[formManual,setFormManual]=useState({funcionarioId:'',data:'',entrada:'',almocoSaida:'',almocoRetorno:'',saida:'',obs:''});
+
+  const registrarPonto=(tipo)=>{
+    if(!funcSelecionado){showAlert('Selecione um funcionário','red');return}
+    const id=parseInt(funcSelecionado);
+    const agora=fmtTime(clock);
+    const dataHoje=clock.toISOString().slice(0,10);
+    if(tipo==='saida'){
+      const atual=pontoAtivo[id]||{};
+      setPontos(prev=>[...prev,{id:Date.now(),funcionarioId:id,data:dataHoje,...atual,saida:agora,status:'Completo'}]);
+      setPontoAtivo(prev=>{const n={...prev};delete n[id];return n});
+      showAlert('Jornada finalizada e salva!');
+    }else{
+      setPontoAtivo(prev=>({...prev,[id]:{...(prev[id]||{}),[tipo]:agora,data:dataHoje}}));
+      showAlert(`${tipo==='entrada'?'Entrada':tipo==='almocoSaida'?'Saída para almoço':'Retorno do almoço'} registrado: ${agora}`);
+    }
+  };
+
+  const ativo=funcSelecionado?pontoAtivo[parseInt(funcSelecionado)]:null;
+  const tiposBotoes=[
+    {tipo:'entrada',label:'Entrada',icon:'ti-login',disabled:!!(ativo?.entrada)},
+    {tipo:'almocoSaida',label:'Saída Almoço',icon:'ti-soup',disabled:!ativo?.entrada||!!(ativo?.almocoSaida)},
+    {tipo:'almocoRetorno',label:'Retorno Almoço',icon:'ti-arrow-back-up',disabled:!ativo?.almocoSaida||!!(ativo?.almocoRetorno)},
+    {tipo:'saida',label:'Saída Final',icon:'ti-logout',disabled:!ativo?.entrada},
+  ];
+
+  const salvarManual=()=>{
+    if(!formManual.funcionarioId||!formManual.data||!formManual.entrada){showAlert('Preencha os campos obrigatórios','red');return}
+    setPontos(prev=>[...prev,{id:Date.now(),...formManual,funcionarioId:parseInt(formManual.funcionarioId),status:formManual.saida?'Completo':'Incompleto'}]);
+    setModalManual(false);showAlert('Ponto registrado manualmente!');
+  };
+
+  return(
+    <div>
+      <div className="tabs">
+        <div className={`tab${tabPonto==='registrar'?' active':''}`} onClick={()=>setTabPonto('registrar')}>Registrar Ponto</div>
+        <div className={`tab${tabPonto==='historico'?' active':''}`} onClick={()=>setTabPonto('historico')}>Histórico</div>
+      </div>
+      {tabPonto==='registrar'&&(
+        <div>
+          <div className="grid-2" style={{marginBottom:16}}>
+            <div className="card">
+              <div className="section-title">Marcar Ponto</div>
+              <div className="form-group"><label className="form-label">Funcionário</label><select className="select" value={funcSelecionado} onChange={e=>setFuncSelecionado(e.target.value)}><option value="">Selecione...</option>{funcionarios.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
+                {tiposBotoes.map(b=>(<button key={b.tipo} className={`ponto-btn ${b.disabled?'btn-secondary':'btn-primary'}`} style={{opacity:b.disabled?0.4:1,cursor:b.disabled?'not-allowed':'pointer'}} disabled={b.disabled} onClick={()=>registrarPonto(b.tipo)}><i className={`ti ${b.icon}`} style={{marginRight:4}}></i>{b.label}</button>))}
+              </div>
+              <button className="btn btn-secondary" style={{width:'100%',marginTop:12,justifyContent:'center'}} onClick={()=>setModalManual(true)}><i className="ti ti-edit"></i>Registro Manual (Gestor)</button>
+            </div>
+            <div className="card">
+              <div className="section-title">Status do Dia</div>
+              {funcSelecionado&&ativo?(
+                ['entrada','almocoSaida','almocoRetorno'].map(t=>(<div key={t} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid var(--border)'}}><span style={{fontSize:13,color:'var(--text2)'}}>{t==='entrada'?'Entrada':t==='almocoSaida'?'Saída Almoço':'Retorno Almoço'}</span><span style={{fontWeight:600,color:ativo[t]?'var(--green)':'var(--text3)'}}>{ativo[t]||'—'}</span></div>))
+              ):(<div className="empty-state"><span className="empty-icon">⏱</span>{funcSelecionado?'Sem ponto ativo hoje':'Selecione um funcionário'}</div>)}
+            </div>
+          </div>
+          <div className="card" style={{padding:0}}>
+            <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)'}}><div className="section-title" style={{margin:0}}>Situação Atual da Equipe</div></div>
+            <table className="table">
+              <thead><tr><th>Funcionário</th><th>Entrada</th><th>Saída Almoço</th><th>Retorno</th><th>Status</th></tr></thead>
+              <tbody>{funcionarios.filter(f=>f.status==='Ativo').map(f=>{
+                const pa=pontoAtivo[f.id];
+                const pontoHoje=pontos.find(p=>p.funcionarioId===f.id&&p.data===clock.toISOString().slice(0,10)&&p.status==='Completo');
+                const d=pa||pontoHoje;
+                return(<tr key={f.id}><td><div style={{display:'flex',alignItems:'center',gap:8}}><div style={{width:26,height:26,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700}}>{getIniciais(f.nome)}</div>{f.nome}</div></td><td>{d?.entrada||'—'}</td><td>{d?.almocoSaida||'—'}</td><td>{d?.almocoRetorno||'—'}</td><td>{pontoHoje?<span className="badge badge-green">Finalizado</span>:pa?<span className="badge badge-yellow">Em andamento</span>:<span className="badge badge-red">Ausente</span>}</td></tr>);
+              })}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {tabPonto==='historico'&&(
+        <div className="card" style={{padding:0}}>
+          <table className="table">
+            <thead><tr><th>Funcionário</th><th>Data</th><th>Entrada</th><th>Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>{[...pontos].reverse().map(p=>{
+              const f=funcionarios.find(f=>f.id===p.funcionarioId);
+              const toMin=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m};
+              let mins=0;
+              if(p.entrada&&p.saida){mins=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)mins-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
+              const extra=mins>480?mins-480:0;
+              return(<tr key={p.id}><td><div style={{display:'flex',alignItems:'center',gap:6}}><div style={{width:24,height:24,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,fontWeight:700}}>{f?getIniciais(f.nome):'?'}</div>{f?.nome||'—'}</div></td><td>{p.data}</td><td>{p.entrada||'—'}</td><td>{p.almocoSaida||'—'}</td><td>{p.almocoRetorno||'—'}</td><td>{p.saida||'—'}</td><td>{mins>0?<span style={{color:extra>0?'var(--green)':undefined}}>{fmtHoras(mins)}{extra>0?<span style={{color:'var(--green)',fontSize:11}}> +{fmtHoras(extra)}</span>:null}</span>:'—'}</td><td><span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span></td></tr>);
+            })}</tbody>
+          </table>
+          {pontos.length===0&&<div className="empty-state"><span className="empty-icon">⏰</span>Nenhum registro encontrado</div>}
+        </div>
+      )}
+      {modalManual&&(
+        <div className="modal-overlay" onClick={()=>setModalManual(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-title">Registro Manual de Ponto</div>
+            <div className="form-group"><label className="form-label">Funcionário *</label><select className="select" value={formManual.funcionarioId} onChange={e=>setFormManual({...formManual,funcionarioId:e.target.value})}><option value="">Selecione...</option>{funcionarios.map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Data *</label><input className="input" type="date" value={formManual.data} onChange={e=>setFormManual({...formManual,data:e.target.value})}/></div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Entrada *</label><input className="input" type="time" value={formManual.entrada} onChange={e=>setFormManual({...formManual,entrada:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Saída Almoço</label><input className="input" type="time" value={formManual.almocoSaida} onChange={e=>setFormManual({...formManual,almocoSaida:e.target.value})}/></div>
+            </div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Retorno Almoço</label><input className="input" type="time" value={formManual.almocoRetorno} onChange={e=>setFormManual({...formManual,almocoRetorno:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Saída Final</label><input className="input" type="time" value={formManual.saida} onChange={e=>setFormManual({...formManual,saida:e.target.value})}/></div>
+            </div>
+            <div className="form-group"><label className="form-label">Observação</label><input className="input" value={formManual.obs} placeholder="Motivo do registro manual..." onChange={e=>setFormManual({...formManual,obs:e.target.value})}/></div>
+            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setModalManual(false)}>Cancelar</button><button className="btn btn-primary" onClick={salvarManual}>Salvar Registro</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Escalas({funcionarios,setFuncionarios,showAlert}){
+  const escalaDef={
+    '5x2':{label:'5x2 (Seg–Sex)',entrada:'08:00',saida:'17:00',almoco:'1h',dias:'5 dias',cargaHoras:40},
+    '6x1':{label:'6x1 (Seg–Sáb)',entrada:'08:00',saida:'16:00',almoco:'1h',dias:'6 dias',cargaHoras:44},
+    '12x36':{label:'12x36 (Dia sim/não)',entrada:'07:00',saida:'19:00',almoco:'1h',dias:'alternado',cargaHoras:42},
+    'Personalizada':{label:'Personalizada',entrada:'—',saida:'—',almoco:'—',dias:'—',cargaHoras:0},
+  };
+  const[funcEscala,setFuncEscala]=useState('');
+  const[novaEscala,setNovaEscala]=useState('5x2');
+  const salvarEscala=()=>{
+    if(!funcEscala){showAlert('Selecione um funcionário','red');return}
+    setFuncionarios(prev=>prev.map(f=>f.id===parseInt(funcEscala)?{...f,escala:novaEscala}:f));
+    showAlert('Escala atualizada!');setFuncEscala('');
+  };
+  return(
+    <div>
+      <div className="grid-2" style={{marginBottom:20}}>
+        {Object.entries(escalaDef).map(([key,e])=>(
+          <div key={key} className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}><div><div style={{fontWeight:600,fontSize:14}}>{e.label}</div><div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>{e.cargaHoras>0?`${e.cargaHoras}h/semana`:'Configurável'}</div></div><span className="badge badge-blue">{key}</span></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:13,marginBottom:12}}>
+              <div><span style={{color:'var(--text3)'}}>Entrada:</span> <strong>{e.entrada}</strong></div>
+              <div><span style={{color:'var(--text3)'}}>Saída:</span> <strong>{e.saida}</strong></div>
+              <div><span style={{color:'var(--text3)'}}>Almoço:</span> <strong>{e.almoco}</strong></div>
+              <div><span style={{color:'var(--text3)'}}>Dias:</span> <strong>{e.dias}</strong></div>
+            </div>
+            <div>{funcionarios.filter(f=>f.escala===key&&f.status==='Ativo').map(f=>(<span key={f.id} className="chip" style={{marginRight:4,marginBottom:4}}>{f.nome}</span>))}{funcionarios.filter(f=>f.escala===key&&f.status==='Ativo').length===0&&<span style={{fontSize:12,color:'var(--text3)'}}>Nenhum funcionário</span>}</div>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="section-title">Alterar Escala de Funcionário</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <select className="select" style={{flex:1,minWidth:200}} value={funcEscala} onChange={e=>setFuncEscala(e.target.value)}><option value="">Selecione o funcionário...</option>{funcionarios.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome} (atual: {f.escala})</option>)}</select>
+          <select className="select" style={{width:180}} value={novaEscala} onChange={e=>setNovaEscala(e.target.value)}><option>5x2</option><option>6x1</option><option>12x36</option><option>Personalizada</option></select>
+          <button className="btn btn-primary" onClick={salvarEscala}><i className="ti ti-check"></i>Aplicar Escala</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Folgas({funcionarios,folgas,setFolgas,showAlert}){
+  const[modal,setModal]=useState(false);
+  const[filtroTipo,setFiltroTipo]=useState('Todos');
+  const[filtroStatus,setFiltroStatus]=useState('Todos');
+  const[form,setForm]=useState({funcionarioId:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''});
+  const tipos=['Folga semanal','Banco de horas','Férias','Atestado','Feriado','Licença'];
+  const salvar=()=>{
+    if(!form.funcionarioId||!form.inicio){showAlert('Preencha os campos obrigatórios','red');return}
+    setFolgas(prev=>[...prev,{id:Date.now(),...form,funcionarioId:parseInt(form.funcionarioId),status:'Pendente'}]);
+    setModal(false);showAlert('Solicitação de folga criada!');
+  };
+  const aprovar=(id)=>{setFolgas(prev=>prev.map(f=>f.id===id?{...f,status:'Aprovado'}:f));showAlert('Folga aprovada!')};
+  const recusar=(id)=>{setFolgas(prev=>prev.map(f=>f.id===id?{...f,status:'Recusado'}:f));showAlert('Folga recusada.','red')};
+  const lista=folgas.filter(f=>(filtroTipo==='Todos'||f.tipo===filtroTipo)&&(filtroStatus==='Todos'||f.status===filtroStatus));
+  const pendentes=folgas.filter(f=>f.status==='Pendente');
+
+  return(
+    <div>
+      {pendentes.length>0&&<div className="alert alert-yellow">{pendentes.length} solicitação(ões) pendente(s) de aprovação.</div>}
+      <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+        <select className="select" style={{width:160}} value={filtroTipo} onChange={e=>setFiltroTipo(e.target.value)}><option>Todos</option>{tipos.map(t=><option key={t}>{t}</option>)}</select>
+        <select className="select" style={{width:160}} value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)}><option>Todos</option><option>Pendente</option><option>Aprovado</option><option>Recusado</option></select>
+        <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={()=>{setForm({funcionarioId:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''});setModal(true)}}><i className="ti ti-plus"></i>Nova Solicitação</button>
+      </div>
+      <div className="card" style={{padding:0}}>
+        <table className="table">
+          <thead><tr><th>Funcionário</th><th>Tipo</th><th>Início</th><th>Fim</th><th>Observação</th><th>Status</th><th style={{textAlign:'right'}}>Ações</th></tr></thead>
+          <tbody>{lista.map(f=>{
+            const func=funcionarios.find(fu=>fu.id===f.funcionarioId);
+            return(<tr key={f.id}><td><div style={{display:'flex',alignItems:'center',gap:8}}><div style={{width:26,height:26,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700}}>{func?getIniciais(func.nome):'?'}</div>{func?.nome||'—'}</div></td><td><span className="badge badge-blue">{f.tipo}</span></td><td>{f.inicio}</td><td>{f.fim||f.inicio}</td><td style={{color:'var(--text3)',fontSize:12}}>{f.obs||'—'}</td><td><span className={`badge ${f.status==='Aprovado'?'badge-green':f.status==='Recusado'?'badge-red':'badge-yellow'}`}>{f.status}</span></td><td style={{textAlign:'right'}}>{f.status==='Pendente'&&(<><button className="btn btn-success btn-sm" style={{marginRight:4}} onClick={()=>aprovar(f.id)}><i className="ti ti-check"></i></button><button className="btn btn-danger btn-sm" onClick={()=>recusar(f.id)}><i className="ti ti-x"></i></button></>)}</td></tr>);
+          })}</tbody>
+        </table>
+        {lista.length===0&&<div className="empty-state"><span className="empty-icon">🌴</span>Nenhuma folga encontrada</div>}
+      </div>
+      {modal&&(
+        <div className="modal-overlay" onClick={()=>setModal(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-title">Nova Solicitação de Folga</div>
+            <div className="form-group"><label className="form-label">Funcionário *</label><select className="select" value={form.funcionarioId} onChange={e=>setForm({...form,funcionarioId:e.target.value})}><option value="">Selecione...</option>{funcionarios.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Tipo de Folga</label><select className="select" value={form.tipo} onChange={e=>setForm({...form,tipo:e.target.value})}>{tipos.map(t=><option key={t}>{t}</option>)}</select></div>
+            <div className="grid-2">
+              <div className="form-group"><label className="form-label">Data Início *</label><input className="input" type="date" value={form.inicio} onChange={e=>setForm({...form,inicio:e.target.value})}/></div>
+              <div className="form-group"><label className="form-label">Data Fim</label><input className="input" type="date" value={form.fim} onChange={e=>setForm({...form,fim:e.target.value})}/></div>
+            </div>
+            <div className="form-group"><label className="form-label">Observação</label><input className="input" value={form.obs} placeholder="Descrição ou justificativa..." onChange={e=>setForm({...form,obs:e.target.value})}/></div>
+            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setModal(false)}>Cancelar</button><button className="btn btn-primary" onClick={salvar}>Salvar</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Relatorios({funcionarios,pontos,folgas}){
+  const[funcSel,setFuncSel]=useState('');
+  const[mes,setMes]=useState('2025-06');
+  const funcId=parseInt(funcSel);
+  const func=funcionarios.find(f=>f.id===funcId);
+
+  const calcRelatorio=()=>{
+    const toMin=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m};
+    const pf=pontos.filter(p=>p.funcionarioId===funcId&&p.data.startsWith(mes));
+    let totalMin=0,extraMin=0,faltaMin=0,atrasos=0;
+    const diasTrabalhados=pf.filter(p=>p.status==='Completo').length;
+    pf.forEach(p=>{
+      if(p.entrada&&p.saida){
+        let mins=toMin(p.saida)-toMin(p.entrada);
+        if(p.almocoSaida&&p.almocoRetorno)mins-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida));
+        totalMin+=mins;
+        if(mins>480)extraMin+=(mins-480);else if(mins<480)faltaMin+=(480-mins);
+        if(toMin(p.entrada)>8*60+5)atrasos++;
+      }
+    });
+    const diasFolga=folgas.filter(f=>f.funcionarioId===funcId&&f.status==='Aprovado'&&f.inicio.startsWith(mes)).length;
+    return{totalMin,extraMin,faltaMin,atrasos,diasTrabalhados,diasFolga,bancoHoras:extraMin-faltaMin,registros:pf};
+  };
+
+  const rel=funcSel?calcRelatorio():null;
+
+  return(
+    <div>
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
+        <select className="select" style={{flex:1,minWidth:200}} value={funcSel} onChange={e=>setFuncSel(e.target.value)}><option value="">Selecione o funcionário...</option>{funcionarios.map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select>
+        <input className="input" type="month" style={{width:160}} value={mes} onChange={e=>setMes(e.target.value)}/>
+      </div>
+      {rel?(
+        <div>
+          <div className="card" style={{marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+              <div style={{width:44,height:44,borderRadius:'50%',background:'var(--accent-bg)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700}}>{getIniciais(func.nome)}</div>
+              <div><div style={{fontWeight:600,fontSize:15}}>{func.nome}</div><div style={{fontSize:13,color:'var(--text3)'}}>{func.cargo} • {func.departamento} • {func.contrato}</div></div>
+              <span className="badge badge-blue" style={{marginLeft:'auto'}}>{mes}</span>
+            </div>
+            <div className="grid-4">
+              <div className="stat-card"><div className="stat-label">Horas Trabalhadas</div><div className="stat-value">{fmtHoras(rel.totalMin)}</div><div className="horas-bar"><div className="horas-fill" style={{width:`${Math.min(100,Math.round(rel.totalMin/(160*60)*100))}%`,background:'var(--accent)'}}></div></div></div>
+              <div className="stat-card"><div className="stat-label">Horas Extras</div><div className="stat-value" style={{color:'var(--green)'}}>{fmtHoras(rel.extraMin)}</div><div className="stat-sub">Acima de 8h/dia</div></div>
+              <div className="stat-card"><div className="stat-label">Horas Faltantes</div><div className="stat-value" style={{color:rel.faltaMin>0?'var(--red)':undefined}}>{fmtHoras(rel.faltaMin)}</div><div className="stat-sub">Abaixo de 8h/dia</div></div>
+              <div className="stat-card"><div className="stat-label">Banco de Horas</div><div className="stat-value" style={{color:rel.bancoHoras>=0?'var(--green)':'var(--red)'}}>{rel.bancoHoras>=0?'+':''}{fmtHoras(Math.abs(rel.bancoHoras))}</div><div className="stat-sub">{rel.bancoHoras>=0?'Crédito':'Débito'}</div></div>
+            </div>
+          </div>
+          <div className="grid-3" style={{marginBottom:16}}>
+            <div className="stat-card"><div className="stat-label">Dias Trabalhados</div><div className="stat-value">{rel.diasTrabalhados}</div></div>
+            <div className="stat-card"><div className="stat-label">Dias de Folga</div><div className="stat-value">{rel.diasFolga}</div></div>
+            <div className="stat-card"><div className="stat-label">Atrasos</div><div className="stat-value" style={{color:rel.atrasos>0?'var(--yellow)':undefined}}>{rel.atrasos}</div></div>
+          </div>
+          <div className="card" style={{padding:0}}>
+            <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)'}}><div className="section-title" style={{margin:0}}>Registros do Mês</div></div>
+            <table className="table">
+              <thead><tr><th>Data</th><th>Entrada</th><th>Saída Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
+              <tbody>{rel.registros.sort((a,b)=>a.data.localeCompare(b.data)).map(p=>{
+                const toMin=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m};
+                let mins=0;
+                if(p.entrada&&p.saida){mins=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)mins-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
+                const extra=mins>480;
+                return(<tr key={p.id}><td>{p.data}</td><td style={{color:toMin(p.entrada)>8*60+5?'var(--yellow)':undefined}}>{p.entrada||'—'}</td><td>{p.almocoSaida||'—'}</td><td>{p.almocoRetorno||'—'}</td><td>{p.saida||'—'}</td><td style={{color:extra?'var(--green)':undefined,fontWeight:500}}>{mins>0?fmtHoras(mins):'—'}</td><td><span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span></td></tr>);
+              })}</tbody>
+            </table>
+            {rel.registros.length===0&&<div className="empty-state"><span className="empty-icon">📄</span>Nenhum registro neste mês</div>}
+          </div>
+        </div>
+      ):(
+        <div className="empty-state" style={{padding:80}}>
+          <span style={{fontSize:48,display:'block',marginBottom:12}}>📊</span>
+          <div style={{fontSize:14}}>Selecione um funcionário e mês para gerar o relatório</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
