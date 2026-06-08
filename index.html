@@ -81,9 +81,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f
 .tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:var(--bg3)}
-.ml{display:none;flex-direction:column;gap:8px}
-.dt{display:block}
-@media(max-width:767px){.ml{display:flex}.dt{display:none}}
+.ml{display:flex;flex-direction:column;gap:8px}
+.dt{display:none}
+@media(min-width:768px){.ml{display:none}.dt{display:block}}
 .mc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:1000}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:90dvh;overflow-y:auto}
@@ -175,8 +175,12 @@ function showAlert(msg,type='g'){
   render();
 }
 
-// ── Clock ─────────────────────────────────────────────────────────
-setInterval(()=>{state.clock=new Date();render()},1000);
+// ── Clock (atualiza só o elemento, sem re-render completo) ─────────
+setInterval(()=>{
+  state.clock=new Date();
+  const el=document.getElementById('clock-display');
+  if(el)el.textContent=fmtTime(state.clock);
+},1000);
 
 // ── DOM helpers ───────────────────────────────────────────────────
 const h=(tag,attrs={},children=[])=>{
@@ -213,7 +217,7 @@ const badgeStatus=s=>badge(s,s==='Ativo'||s==='Aprovado'?'bg':s==='Inativo'||s==
 // ── Nav ───────────────────────────────────────────────────────────
 const PAGES=[
   {id:'dashboard',icon:'ti-layout-dashboard',label:'Início'},
-  {id:'funcionarios',icon:'ti-users',label:'Equipe'},
+  {id:'funcionarios',icon:'ti-users',label:'Funcionários'},
   {id:'ponto',icon:'ti-clock',label:'Ponto'},
   {id:'folgas',icon:'ti-beach',label:'Folgas'},
   {id:'relatorios',icon:'ti-chart-bar',label:'Relatórios'},
@@ -241,7 +245,7 @@ function buildTopbar(){
   return div('topbar',[
     div('topbar-title',[label]),
     div('',[
-      h('span',{style:{fontSize:'12px',color:'var(--text3)'}},[fmtTime(state.clock)]),
+      h('span',{id:'clock-display',style:{fontSize:'12px',color:'var(--text3)'}},[fmtTime(state.clock)]),
       av('GE',28,9),
     ],{display:'flex',alignItems:'center',gap:'8px'}),
   ]);
@@ -303,54 +307,108 @@ function buildFuncionarios(){
   const {funcs,filtro,filtroStatus}=state;
   const lista=funcs.filter(f=>(filtroStatus==='Todos'||f.status===filtroStatus)&&(f.nome.toLowerCase().includes(filtro.toLowerCase())||f.cargo.toLowerCase().includes(filtro.toLowerCase())));
 
-  const searchRow=div('',[
-    h('input',{class:'inp',placeholder:'Buscar...',value:filtro,oninput:e=>setState({filtro:e.target.value})}),
-    h('select',{class:'sel',style:{width:'110px'},onchange:e=>setState({filtroStatus:e.target.value})},
-      ['Todos','Ativo','Inativo'].map(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===filtroStatus)opt.selected=true;return opt;})
-    ),
-  ],{display:'flex',gap:'8px',marginBottom:'12px'});
+  // barra de busca
+  const inpBusca=document.createElement('input');
+  inpBusca.className='inp';inpBusca.placeholder='Buscar...';inpBusca.value=filtro;
+  inpBusca.addEventListener('input',e=>setState({filtro:e.target.value}));
 
-  const btnNovo=btn('btn-p btn-full',[icon('ti-plus'),'Novo Funcionário'],()=>{
-    setState({modal:'novo-func',formFunc:{nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'}});
+  const selStatus=document.createElement('select');
+  selStatus.className='sel';selStatus.style.width='110px';
+  ['Todos','Ativo','Inativo'].forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===filtroStatus)opt.selected=true;selStatus.appendChild(opt);});
+  selStatus.addEventListener('change',e=>setState({filtroStatus:e.target.value}));
+
+  const searchRow=document.createElement('div');
+  Object.assign(searchRow.style,{display:'flex',gap:'8px',marginBottom:'12px'});
+  searchRow.append(inpBusca,selStatus);
+
+  // botão novo
+  const btnNovo=document.createElement('button');
+  btnNovo.className='btn btn-p btn-full';btnNovo.style.marginBottom='12px';
+  btnNovo.append(icon('ti-plus'),document.createTextNode(' Novo Funcionário'));
+  btnNovo.addEventListener('click',()=>setState({modal:'novo-func',formFunc:{nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'}}));
+
+  // mobile cards
+  const mCards=document.createElement('div');
+  mCards.className='ml';
+  if(lista.length===0){
+    const empty=document.createElement('div');empty.className='empty';empty.textContent='Nenhum funcionário encontrado';mCards.appendChild(empty);
+  } else {
+    lista.forEach(f=>{
+      const mc=document.createElement('div');mc.className='mc';
+
+      // linha 1: avatar + nome + badge status
+      const row1=document.createElement('div');
+      Object.assign(row1.style,{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'});
+      const info=document.createElement('div');info.style.flex='1';
+      const nome=document.createElement('div');nome.style.cssText='font-weight:600;font-size:14px';nome.textContent=f.nome;
+      const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:var(--text3)';sub.textContent=f.cargo+' • '+f.departamento;
+      info.append(nome,sub);
+      row1.append(av(f.nome),info,badgeStatus(f.status));
+
+      // linha 2: contrato + escala + salário
+      const row2=document.createElement('div');
+      Object.assign(row2.style,{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'});
+      const chipEsc=document.createElement('span');chipEsc.className='chip';chipEsc.style.fontSize='11px';chipEsc.textContent=f.escala;
+      const salSpan=document.createElement('span');salSpan.style.cssText='font-size:12px;color:var(--text2)';salSpan.textContent='R$ '+Number(f.salario).toLocaleString('pt-BR');
+      row2.append(badgeContrato(f.contrato),chipEsc,salSpan);
+
+      // linha 3: botões
+      const row3=document.createElement('div');
+      Object.assign(row3.style,{display:'flex',gap:'8px'});
+      const bEdit=document.createElement('button');bEdit.className='btn btn-s btn-sm';bEdit.style.flex='1';bEdit.style.justifyContent='center';
+      bEdit.append(icon('ti-edit'),document.createTextNode(' Editar'));
+      bEdit.addEventListener('click',()=>abrirEditarFunc(f));
+      const bDel=document.createElement('button');bDel.className='btn btn-d btn-sm';
+      bDel.appendChild(icon('ti-trash'));
+      bDel.addEventListener('click',()=>excluirFunc(f.id));
+      row3.append(bEdit,bDel);
+
+      mc.append(row1,row2,row3);
+      mCards.appendChild(mc);
+    });
+  }
+
+  // desktop table
+  const table=document.createElement('table');table.className='tbl';
+  const thead=document.createElement('thead');
+  const trH=document.createElement('tr');
+  ['Funcionário','Cargo','Contrato','Salário','Escala','Status',''].forEach(t=>{const th=document.createElement('th');th.textContent=t;trH.appendChild(th);});
+  thead.appendChild(trH);
+  const tbody=document.createElement('tbody');
+  lista.forEach(f=>{
+    const tr=document.createElement('tr');
+    // td nome
+    const tdN=document.createElement('td');
+    const wrap=document.createElement('div');Object.assign(wrap.style,{display:'flex',alignItems:'center',gap:'8px'});
+    const nDiv=document.createElement('div');
+    const n1=document.createElement('div');n1.style.fontWeight='500';n1.textContent=f.nome;
+    const n2=document.createElement('div');n2.style.cssText='font-size:11px;color:var(--text3)';n2.textContent=f.email;
+    nDiv.append(n1,n2);wrap.append(av(f.nome),nDiv);tdN.appendChild(wrap);
+    // td cargo
+    const tdC=document.createElement('td');tdC.textContent=f.cargo;
+    // td contrato
+    const tdCt=document.createElement('td');tdCt.appendChild(badgeContrato(f.contrato));
+    // td salário
+    const tdS=document.createElement('td');tdS.textContent='R$ '+Number(f.salario).toLocaleString('pt-BR');
+    // td escala
+    const tdE=document.createElement('td');const chipE=document.createElement('span');chipE.className='chip';chipE.textContent=f.escala;tdE.appendChild(chipE);
+    // td status
+    const tdSt=document.createElement('td');tdSt.appendChild(badgeStatus(f.status));
+    // td ações
+    const tdA=document.createElement('td');tdA.style.textAlign='right';
+    const bE=document.createElement('button');bE.className='btn btn-s btn-sm';bE.style.marginRight='4px';bE.appendChild(icon('ti-edit'));bE.addEventListener('click',()=>abrirEditarFunc(f));
+    const bD=document.createElement('button');bD.className='btn btn-d btn-sm';bD.appendChild(icon('ti-trash'));bD.addEventListener('click',()=>excluirFunc(f.id));
+    tdA.append(bE,bD);
+    tr.append(tdN,tdC,tdCt,tdS,tdE,tdSt,tdA);
+    tbody.appendChild(tr);
   });
-  const btnWrap=div('',[ btnNovo],{marginBottom:'12px'});
+  table.append(thead,tbody);
+  const cardTable=document.createElement('div');cardTable.className='card';cardTable.style.padding='0';cardTable.appendChild(table);
+  const dt=document.createElement('div');dt.className='dt';dt.appendChild(cardTable);
 
-  // Mobile cards
-  const mCards=div('ml',lista.map(f=>{
-    const mc=div('mc',[
-      div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'600',fontSize:'14px'}},[f.nome]),h('div',{style:{fontSize:'12px',color:'var(--text3)'}},[f.cargo+' • '+f.departamento])],{flex:'1'}),badgeStatus(f.status)],{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}),
-      div('',[badgeContrato(f.contrato),div('chip',[f.escala],{fontSize:'11px'}),h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`R$ ${Number(f.salario).toLocaleString('pt-BR')}`])],{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}),
-      div('',[
-        btn('btn-s btn-sm',[ icon('ti-edit'),'Editar'],()=>abrirEditarFunc(f)),
-        btn('btn-d btn-sm',[icon('ti-trash')],()=>excluirFunc(f.id)),
-      ],{display:'flex',gap:'8px'}),
-    ]);
-    return mc;
-  }));
-  if(lista.length===0)mCards.appendChild(div('empty',['Nenhum funcionário encontrado']));
-
-  // Desktop table
-  const thead=h('thead',{},[h('tr',{},[['Funcionário','Cargo','Contrato','Salário','Escala','Status',''].map(t=>h('th',{},[t]))])]);
-  thead.querySelector('tr').replaceChildren(...['Funcionário','Cargo','Contrato','Salário','Escala','Status',''].map(t=>h('th',{},[t])));
-  const tbody=h('tbody',{},lista.map(f=>{
-    const tr=h('tr',{},[]);
-    const tdName=h('td',{},[div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'500'}},[f.nome]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.email])],{})],{display:'flex',alignItems:'center',gap:'8px'})]);
-    const tdCargo=h('td',{},[f.cargo]);
-    const tdContr=h('td',{},[badgeContrato(f.contrato)]);
-    const tdSal=h('td',{},[`R$ ${Number(f.salario).toLocaleString('pt-BR')}`]);
-    const tdEsc=h('td',{},[div('chip',[f.escala])]);
-    const tdSt=h('td',{},[badgeStatus(f.status)]);
-    const tdAct=h('td',{style:{textAlign:'right'}},[
-      btn('btn-s btn-sm',[icon('ti-edit')],()=>abrirEditarFunc(f)),
-      h('span',{style:{width:'4px',display:'inline-block'}},[]),
-      btn('btn-d btn-sm',[icon('ti-trash')],()=>excluirFunc(f.id)),
-    ]);
-    tr.append(tdName,tdCargo,tdContr,tdSal,tdEsc,tdSt,tdAct);
-    return tr;
-  }));
-  const dt=div('dt',[div('card',[h('table',{class:'tbl'},[thead,tbody])],{padding:'0'})]);
-
-  return div('',[searchRow,btnWrap,mCards,dt]);
+  const wrap2=document.createElement('div');
+  wrap2.append(searchRow,btnNovo,mCards,dt);
+  return wrap2;
 }
 
 function abrirEditarFunc(f){setState({modal:'editar-func',formFunc:{...f,salario:String(f.salario)}})}
@@ -403,20 +461,18 @@ function buildPonto(){
     const btnManual=btn('btn-s btn-full',[icon('ti-edit'),' Registro Manual (Gestor)'],()=>setState({modal:'manual'}));
     content=div('',[cardReg,...(statusCard?[statusCard]:[]),btnManual]);
   } else if(tab==='equipe'){
-    const hoje=clock.toISOString().slice(0,10);
+    const hoje=new Date().toISOString().slice(0,10);
     const cards=funcs.filter(f=>f.status==='Ativo').map(f=>{
       const p2=pa[f.id],ph=pontos.find(p=>p.fid===f.id&&p.data===hoje&&p.status==='Completo'),d=p2||ph;
       const statusBadge=ph?badge('Finalizado','bg'):p2?badge('Em andamento','by'):badge('Ausente','br');
       const mc=div('mc',[
-        div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'600'}},[f.nome]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.cargo])],{flex:'1'}),statusBadge],{display:'flex',alignItems:'center',gap:'10px',marginBottom:d?'8px':'0'}),
+        div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'600'}},[f.nome]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.cargo])],{flex:'1'}),statusBadge],{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}),
+        div('',[
+          h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`Entrada: `]),h('strong',{},[d?.entrada||'—']),
+          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Almoço: `]),h('strong',{},[d?.alSaida||'—']),
+          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Retorno: `]),h('strong',{},[d?.alRetorno||'—']),
+        ],{fontSize:'12px',flexWrap:'wrap',display:'flex'}),
       ]);
-      if(d){
-        mc.appendChild(div('',[
-          h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`Entrada: `]),h('strong',{},[d.entrada||'—']),
-          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Almoço: `]),h('strong',{},[d.alSaida||'—']),
-          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Retorno: `]),h('strong',{},[d.alRetorno||'—']),
-        ],{fontSize:'12px',flexWrap:'wrap',display:'flex'}));
-      }
       return mc;
     });
     content=div('',cards,{display:'flex',flexDirection:'column',gap:'8px'});
@@ -449,9 +505,9 @@ function buildPonto(){
 }
 
 function registrarPonto(tipo){
-  const {selFunc,pa,clock}=state;
+  const {selFunc,pa}=state;
   if(!selFunc){showAlert('Selecione um funcionário','r');return}
-  const id=parseInt(selFunc),agora=fmtTime(clock),hoje=clock.toISOString().slice(0,10);
+  const id=parseInt(selFunc),now=new Date(),agora=fmtTime(now),hoje=now.toISOString().slice(0,10);
   if(tipo==='saida'){
     const at=pa[id]||{};
     state.pontos=[...state.pontos,{id:Date.now(),fid:id,data:hoje,...at,saida:agora,status:'Completo'}];
