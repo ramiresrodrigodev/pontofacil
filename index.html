@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>PontoFácil – Sistema de RH</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -21,20 +18,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f
   --red:#ef4444;--red-bg:#450a0a;
   --purple:#a855f7;--purple-bg:#3b0764;
   --cyan:#06b6d4;--cyan-bg:#0c4a6e;
-  --bottom-nav:60px;
+  --bnav:60px;
 }
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:100}
 .topbar-title{font-size:15px;font-weight:600}
-.content{flex:1;overflow-y:auto;padding:16px;background:var(--bg);padding-bottom:calc(var(--bottom-nav) + 16px)}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--bottom-nav);background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);font-size:9px;font-weight:500;transition:color .15s;padding:6px 2px}
+.content{flex:1;overflow-y:auto;padding:16px;background:var(--bg);padding-bottom:calc(var(--bnav) + 16px)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--bnav);background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:200}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);font-size:9px;font-weight:500;padding:6px 2px;border:none;background:none}
 .bnav-item i{font-size:20px}
 .bnav-item.active{color:var(--accent)}
 @media(min-width:768px){
   .app{flex-direction:row}
   .bottom-nav{display:none}
-  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex!important;flex-direction:column;flex-shrink:0}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
   .content{padding:24px;padding-bottom:24px}
 }
@@ -43,566 +40,642 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f
 .logo{padding:20px 16px;border-bottom:1px solid var(--border)}
 .logo-text{font-size:18px;font-weight:700;color:var(--accent)}
 .logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
-.nav{padding:12px 8px;flex:1;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;transition:all .15s}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--accent-bg);color:var(--accent)}
-.nav-item i{font-size:16px;width:18px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-@media(max-width:767px){
-  .grid-4{grid-template-columns:1fr 1fr}
-  .grid-3{grid-template-columns:1fr 1fr}
-  .grid-2{grid-template-columns:1fr}
-}
-@media(max-width:400px){.grid-3{grid-template-columns:1fr}}
+.snav{padding:12px 8px;flex:1}
+.snav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.snav-item:hover{background:var(--bg3);color:var(--text)}
+.snav-item.active{background:var(--accent-bg);color:var(--accent)}
+.snav-item i{font-size:16px;width:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:767px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+@media(max-width:400px){.g3{grid-template-columns:1fr}}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.stat-value{font-size:22px;font-weight:700;color:var(--text)}
-.stat-sub{font-size:11px;color:var(--text3);margin-top:2px}
-.section-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.slabel{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.sval{font-size:22px;font-weight:700}
+.ssub{font-size:11px;color:var(--text3);margin-top:2px}
+.sec{font-size:14px;font-weight:600;margin-bottom:12px}
 .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-green{background:var(--green-bg);color:var(--green)}
-.badge-red{background:var(--red-bg);color:var(--red)}
-.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
-.badge-blue{background:var(--accent-bg);color:var(--accent)}
-.badge-purple{background:var(--purple-bg);color:var(--purple)}
-.badge-cyan{background:var(--cyan-bg);color:var(--cyan)}
+.bg{background:var(--green-bg);color:var(--green)}
+.br{background:var(--red-bg);color:var(--red)}
+.by{background:var(--yellow-bg);color:var(--yellow)}
+.bb{background:var(--accent-bg);color:var(--accent)}
+.bp{background:var(--purple-bg);color:var(--purple)}
+.bc{background:var(--cyan-bg);color:var(--cyan)}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;cursor:pointer;border:none;font-weight:500;transition:all .15s;touch-action:manipulation}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:active{background:var(--accent2)}
-.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
-.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
-.btn-success{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;cursor:pointer;border:none;font-weight:500;touch-action:manipulation}
+.btn-p{background:var(--accent);color:#fff}
+.btn-s{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+.btn-d{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.btn-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
 .btn-sm{padding:5px 10px;font-size:12px}
-.btn-block{width:100%;justify-content:center}
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
-.input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none}
-.input:focus{border-color:var(--accent)}
-.select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none;cursor:pointer}
-.table{width:100%;border-collapse:collapse;font-size:13px}
-.table th{text-align:left;padding:10px 12px;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:500}
-.table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
-.table tr:last-child td{border-bottom:none}
-.mobile-list{display:none}
-.desktop-table{display:block}
-@media(max-width:767px){.mobile-list{display:flex;flex-direction:column;gap:8px}.desktop-table{display:none}}
-.mcard{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:1000}
+.btn-full{width:100%;justify-content:center}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none}
+.inp:focus{border-color:var(--accent)}
+.sel{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none;cursor:pointer}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:10px 12px;color:var(--text3);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg3)}
+.ml{display:none;flex-direction:column;gap:8px}
+.dt{display:block}
+@media(max-width:767px){.ml{display:flex}.dt{display:none}}
+.mc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:1000}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:90dvh;overflow-y:auto}
-.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-@media(min-width:600px){.modal-overlay{align-items:center}.modal{border-radius:12px;width:500px;max-width:95vw}}
+.modal-t{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal-a{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+@media(min-width:600px){.ov{align-items:center}.modal{border-radius:12px;width:500px;max-width:95vw}}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px}
-.alert-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
-.alert-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
-.alert-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow)}
+.ag{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.ar{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.ay{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow)}
 .tabs{display:flex;gap:4px;background:var(--bg3);padding:4px;border-radius:8px;margin-bottom:16px;overflow-x:auto}
-.tab{padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);font-weight:500;white-space:nowrap}
+.tab{padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);font-weight:500;white-space:nowrap;border:none;background:none}
 .tab.active{background:var(--bg2);color:var(--text)}
-.horas-bar{height:6px;border-radius:3px;background:var(--bg4);overflow:hidden;margin-top:6px}
-.horas-fill{height:100%;border-radius:3px}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.ponto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ponto-btn{padding:14px 8px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:none;transition:all .15s;touch-action:manipulation}
+.hbar{height:6px;border-radius:3px;background:var(--bg4);overflow:hidden;margin-top:6px}
+.hfill{height:100%;border-radius:3px}
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--accent-bg);color:var(--accent);font-weight:700;flex-shrink:0}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pbtn{padding:14px 8px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:none;touch-action:manipulation;width:100%}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect}=React;
-const ini_func=[
+<div id="app"></div>
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const INI_FUNCS=[
   {id:1,nome:'Ana Lima',cargo:'Desenvolvedora',departamento:'TI',salario:8500,contrato:'CLT',status:'Ativo',email:'ana@empresa.com',telefone:'11 99999-0001',dataAdmissao:'2022-03-01',escala:'5x2'},
   {id:2,nome:'Bruno Costa',cargo:'Designer',departamento:'Marketing',salario:6200,contrato:'CLT',status:'Ativo',email:'bruno@empresa.com',telefone:'11 99999-0002',dataAdmissao:'2021-07-15',escala:'5x2'},
   {id:3,nome:'Carla Souza',cargo:'Analista Financeiro',departamento:'Financeiro',salario:7800,contrato:'CLT',status:'Ativo',email:'carla@empresa.com',telefone:'11 99999-0003',dataAdmissao:'2023-01-10',escala:'5x2'},
   {id:4,nome:'Daniel Rocha',cargo:'Estágio em TI',departamento:'TI',salario:1800,contrato:'Estágio',status:'Ativo',email:'daniel@empresa.com',telefone:'11 99999-0004',dataAdmissao:'2024-02-01',escala:'5x2'},
   {id:5,nome:'Emília Nunes',cargo:'Consultora PJ',departamento:'Comercial',salario:12000,contrato:'PJ',status:'Inativo',email:'emilia@empresa.com',telefone:'11 99999-0005',dataAdmissao:'2020-05-20',escala:'5x2'},
 ];
-const ini_pontos=[
-  {id:1,funcionarioId:1,data:'2025-06-02',entrada:'08:02',almocoSaida:'12:05',almocoRetorno:'13:10',saida:'17:30',status:'Completo'},
-  {id:2,funcionarioId:1,data:'2025-06-03',entrada:'08:15',almocoSaida:'12:00',almocoRetorno:'13:05',saida:'17:45',status:'Completo'},
-  {id:3,funcionarioId:2,data:'2025-06-02',entrada:'09:00',almocoSaida:'12:30',almocoRetorno:'13:30',saida:'18:00',status:'Completo'},
-  {id:4,funcionarioId:2,data:'2025-06-03',entrada:'09:20',almocoSaida:'12:30',almocoRetorno:'13:30',saida:'18:10',status:'Completo'},
-  {id:5,funcionarioId:3,data:'2025-06-03',entrada:'07:55',almocoSaida:'12:00',almocoRetorno:'13:00',saida:'17:00',status:'Completo'},
+const INI_PONTOS=[
+  {id:1,fid:1,data:'2025-06-02',entrada:'08:02',alSaida:'12:05',alRetorno:'13:10',saida:'17:30',status:'Completo'},
+  {id:2,fid:1,data:'2025-06-03',entrada:'08:15',alSaida:'12:00',alRetorno:'13:05',saida:'17:45',status:'Completo'},
+  {id:3,fid:2,data:'2025-06-02',entrada:'09:00',alSaida:'12:30',alRetorno:'13:30',saida:'18:00',status:'Completo'},
+  {id:4,fid:2,data:'2025-06-03',entrada:'09:20',alSaida:'12:30',alRetorno:'13:30',saida:'18:10',status:'Completo'},
+  {id:5,fid:3,data:'2025-06-03',entrada:'07:55',alSaida:'12:00',alRetorno:'13:00',saida:'17:00',status:'Completo'},
 ];
-const ini_folgas=[
-  {id:1,funcionarioId:1,tipo:'Férias',inicio:'2025-07-01',fim:'2025-07-15',status:'Aprovado',obs:'Férias anuais'},
-  {id:2,funcionarioId:2,tipo:'Atestado',inicio:'2025-06-01',fim:'2025-06-01',status:'Aprovado',obs:'Consulta médica'},
-  {id:3,funcionarioId:3,tipo:'Folga semanal',inicio:'2025-06-07',fim:'2025-06-07',status:'Aprovado',obs:''},
-  {id:4,funcionarioId:4,tipo:'Banco de horas',inicio:'2025-06-05',fim:'2025-06-05',status:'Pendente',obs:'Compensação horas extras'},
+const INI_FOLGAS=[
+  {id:1,fid:1,tipo:'Férias',inicio:'2025-07-01',fim:'2025-07-15',status:'Aprovado',obs:'Férias anuais'},
+  {id:2,fid:2,tipo:'Atestado',inicio:'2025-06-01',fim:'2025-06-01',status:'Aprovado',obs:'Consulta médica'},
+  {id:3,fid:3,tipo:'Folga semanal',inicio:'2025-06-07',fim:'2025-06-07',status:'Aprovado',obs:''},
+  {id:4,fid:4,tipo:'Banco de horas',inicio:'2025-06-05',fim:'2025-06-05',status:'Pendente',obs:'Compensação horas extras'},
 ];
-const fmtDate=d=>d.toLocaleDateString('pt-BR');
-const fmtTime=d=>d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-const fmtH=min=>{const h=Math.floor(min/60),m=min%60;return`${h}h${m>0?String(m).padStart(2,'0')+'min':''}`};
-const ini=n=>n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+
+// ── Helpers ───────────────────────────────────────────────────────
 const toMin=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m};
+const fmtH=m=>{const h=Math.floor(m/60),mn=m%60;return`${h}h${mn>0?String(mn).padStart(2,'0')+'min':''}`};
+const ini=n=>n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+const fmtTime=d=>d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const fmtDate=d=>d.toLocaleDateString('pt-BR');
+const calcMins=(p)=>{
+  if(!p.entrada||!p.saida)return 0;
+  let m=toMin(p.saida)-toMin(p.entrada);
+  if(p.alSaida&&p.alRetorno)m-=toMin(p.alRetorno)-toMin(p.alSaida);
+  return m;
+};
 
-function App(){
-  const[page,setPage]=useState('dashboard');
-  const[funcs,setFuncs]=useState(ini_func);
-  const[pontos,setPontos]=useState(ini_pontos);
-  const[folgas,setFolgas]=useState(ini_folgas);
-  const[pa,setPa]=useState({});
-  const[alert,setAlert]=useState(null);
-  const[clock,setClock]=useState(new Date());
-  useEffect(()=>{const t=setInterval(()=>setClock(new Date()),1000);return()=>clearInterval(t)},[]);
-  useEffect(()=>{if(alert){const t=setTimeout(()=>setAlert(null),3000);return()=>clearTimeout(t)}},[alert]);
-  const showAlert=(msg,type='green')=>setAlert({msg,type});
-  const nav=[
-    {id:'dashboard',icon:'ti-layout-dashboard',label:'Início'},
-    {id:'funcionarios',icon:'ti-users',label:'Equipe'},
-    {id:'ponto',icon:'ti-clock',label:'Ponto'},
-    {id:'folgas',icon:'ti-beach',label:'Folgas'},
-    {id:'relatorios',icon:'ti-chart-bar',label:'Relatórios'},
-    {id:'escalas',icon:'ti-calendar-month',label:'Escalas'},
-  ];
+// ── State ─────────────────────────────────────────────────────────
+let state={
+  page:'dashboard',
+  funcs:INI_FUNCS,
+  pontos:INI_PONTOS,
+  folgas:INI_FOLGAS,
+  pa:{},
+  alert:null,
+  clock:new Date(),
+  modal:null,
+  tab:'registrar',
+  selFunc:'',
+  filtro:'',
+  filtroStatus:'Todos',
+  filtroFolga:'Todos',
+  relFunc:'',
+  relMes:'2025-06',
+  formFunc:{nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'},
+  formManual:{fid:'',data:'',entrada:'',alSaida:'',alRetorno:'',saida:'',obs:''},
+  formFolga:{fid:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''},
+};
+
+function setState(patch){state={...state,...patch};render()}
+
+// ── Alert ─────────────────────────────────────────────────────────
+function showAlert(msg,type='g'){
+  state.alert={msg,type};
+  clearTimeout(state._at);
+  state._at=setTimeout(()=>{state.alert=null;render()},3000);
+  render();
+}
+
+// ── Clock ─────────────────────────────────────────────────────────
+setInterval(()=>{state.clock=new Date();render()},1000);
+
+// ── DOM helpers ───────────────────────────────────────────────────
+const h=(tag,attrs={},children=[])=>{
+  const el=document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='style'&&typeof v==='object')Object.assign(el.style,v);
+    else if(k.startsWith('on'))el.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==='class')el.className=v;
+    else el.setAttribute(k,v);
+  });
+  children.forEach(c=>{
+    if(c===null||c===undefined)return;
+    el.appendChild(typeof c==='string'?document.createTextNode(c):c);
+  });
+  return el;
+};
+const div=(cls,children=[],style={})=>h('div',{class:cls,style},children);
+const span=(cls,txt,style={})=>h('span',{class:cls,style},[txt]);
+const btn=(cls,children,onClick)=>h('button',{class:`btn ${cls}`,onclick:onClick},children);
+const icon=name=>h('i',{class:`ti ${name}`});
+const av=(nome,size=32,fs=11)=>{
+  const d=document.createElement('div');
+  d.className='av';
+  Object.assign(d.style,{width:size+'px',height:size+'px',fontSize:fs+'px'});
+  d.textContent=ini(nome);
+  return d;
+};
+
+// ── Badge ─────────────────────────────────────────────────────────
+const badge=(txt,cls)=>span(`badge ${cls}`,txt);
+const badgeContrato=c=>badge(c,c==='CLT'?'bb':c==='PJ'?'bp':'bc');
+const badgeStatus=s=>badge(s,s==='Ativo'||s==='Aprovado'?'bg':s==='Inativo'||s==='Recusado'?'br':'by');
+
+// ── Nav ───────────────────────────────────────────────────────────
+const PAGES=[
+  {id:'dashboard',icon:'ti-layout-dashboard',label:'Início'},
+  {id:'funcionarios',icon:'ti-users',label:'Equipe'},
+  {id:'ponto',icon:'ti-clock',label:'Ponto'},
+  {id:'folgas',icon:'ti-beach',label:'Folgas'},
+  {id:'relatorios',icon:'ti-chart-bar',label:'Relatórios'},
+  {id:'escalas',icon:'ti-calendar-month',label:'Escalas'},
+];
+
+function buildSidebar(){
+  const s=document.createElement('aside');
+  s.className='sidebar';
+  const logo=div('logo',[
+    div('logo-text',['PontoFácil']),
+    div('logo-sub',['Sistema de RH']),
+  ]);
+  const nav=div('snav',PAGES.map(p=>{
+    const item=h('button',{class:`snav-item${state.page===p.id?' active':''}`,onclick:()=>setState({page:p.id})},[icon(p.icon),h('span',{},[p.label])]);
+    return item;
+  }));
+  const foot=div('',[h('button',{class:'snav-item',style:{width:'100%'}},[icon('ti-settings'),h('span',{},['Configurações'])])],{padding:'12px 8px',borderTop:'1px solid var(--border)'});
+  s.appendChild(logo);s.appendChild(nav);s.appendChild(foot);
+  return s;
+}
+
+function buildTopbar(){
+  const label=PAGES.find(p=>p.id===state.page)?.label||'';
+  return div('topbar',[
+    div('topbar-title',[label]),
+    div('',[
+      h('span',{style:{fontSize:'12px',color:'var(--text3)'}},[fmtTime(state.clock)]),
+      av('GE',28,9),
+    ],{display:'flex',alignItems:'center',gap:'8px'}),
+  ]);
+}
+
+function buildBottomNav(){
+  const nav=div('bottom-nav',PAGES.map(p=>{
+    const item=h('button',{class:`bnav-item${state.page===p.id?' active':''}`,onclick:()=>setState({page:p.id})},[icon(p.icon),h('span',{},[p.label])]);
+    return item;
+  }));
+  return nav;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+function buildDashboard(){
+  const {funcs,pontos,folgas}=state;
   const ativos=funcs.filter(f=>f.status==='Ativo').length;
-  const totalMin=pontos.reduce((a,p)=>{if(!p.entrada||!p.saida)return a;let m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida));return a+m},0);
+  const totalMin=pontos.reduce((a,p)=>a+calcMins(p),0);
   const pendentes=folgas.filter(f=>f.status==='Pendente').length;
-  return(
-    <div className="app">
-      <aside className="sidebar">
-        <div className="logo"><div className="logo-text">PontoFácil</div><div className="logo-sub">Sistema de RH</div></div>
-        <nav className="nav">{nav.map(p=><div key={p.id} className={`nav-item${page===p.id?' active':''}`} onClick={()=>setPage(p.id)}><i className={`ti ${p.icon}`}></i><span>{p.label}</span></div>)}</nav>
-        <div style={{padding:'12px 8px',borderTop:'1px solid var(--border)'}}><div className="nav-item"><i className="ti ti-settings"></i><span>Configurações</span></div></div>
-      </aside>
-      <div className="main">
-        <div className="topbar">
-          <div className="topbar-title">{nav.find(p=>p.id===page)?.label}</div>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <span style={{fontSize:12,color:'var(--text3)'}}>{fmtTime(clock)}</span>
-            <div className="avatar" style={{width:28,height:28,fontSize:10}}>GE</div>
-          </div>
-        </div>
-        {alert&&<div style={{padding:'10px 16px 0'}}><div className={`alert alert-${alert.type}`}>{alert.msg}</div></div>}
-        <div className="content">
-          {page==='dashboard'&&<Dashboard funcs={funcs} pontos={pontos} folgas={folgas} ativos={ativos} totalMin={totalMin} pendentes={pendentes} setPage={setPage}/>}
-          {page==='funcionarios'&&<Funcionarios funcs={funcs} setFuncs={setFuncs} showAlert={showAlert}/>}
-          {page==='ponto'&&<Ponto funcs={funcs} pontos={pontos} setPontos={setPontos} pa={pa} setPa={setPa} showAlert={showAlert} clock={clock}/>}
-          {page==='escalas'&&<Escalas funcs={funcs} setFuncs={setFuncs} showAlert={showAlert}/>}
-          {page==='folgas'&&<Folgas funcs={funcs} folgas={folgas} setFolgas={setFolgas} showAlert={showAlert}/>}
-          {page==='relatorios'&&<Relatorios funcs={funcs} pontos={pontos} folgas={folgas}/>}
-        </div>
-      </div>
-      <nav className="bottom-nav">
-        {nav.map(p=><div key={p.id} className={`bnav-item${page===p.id?' active':''}`} onClick={()=>setPage(p.id)}><i className={`ti ${p.icon}`}></i><span>{p.label}</span></div>)}
-      </nav>
-    </div>
-  );
+  const recentes=[...pontos].reverse().slice(0,4);
+  const proxFolgas=folgas.filter(f=>f.status==='Aprovado').slice(0,3);
+
+  const stats=div('g4',[
+    div('scard',[div('slabel',['Ativos']),div('sval',[String(ativos)]),div('ssub',[funcs.length+' total'])]),
+    div('scard',[div('slabel',['Horas/mês']),div('sval',[Math.floor(totalMin/60)+'h']),div('ssub',['registradas'])]),
+    div('scard',[div('slabel',['Pendentes']),h('div',{class:'sval',style:{color:pendentes>0?'var(--yellow)':''}},[String(pendentes)]),div('ssub',['folgas'])]),
+    div('scard',[div('slabel',['Pontos']),div('sval',[String(pontos.length)]),div('ssub',['registros'])]),
+  ],{marginBottom:'14px'});
+
+  const rows=recentes.map(p=>{
+    const f=funcs.find(f=>f.id===p.fid);
+    return div('',[
+      div('',[av(f?.nome||'?',28,10),div('',[h('div',{style:{fontSize:'13px',fontWeight:'500'}},[f?.nome||'—']),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[p.data])],{})],{display:'flex',alignItems:'center',gap:'8px'}),
+      div('',[h('div',{style:{fontSize:'12px',color:'var(--text2)'}},[p.entrada+' → '+(p.saida||'—')]),badgeStatus(p.status)],{textAlign:'right'}),
+    ],{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)'});
+  });
+  const cardPontos=div('card',[div('sec',['Últimos registros']),...rows,btn('btn-s btn-full',['Ver todos'],()=>setState({page:'ponto'}))],{marginBottom:'12px'});
+
+  const fRows=proxFolgas.map(f=>{
+    const func=funcs.find(fu=>fu.id===f.fid);
+    return div('',[
+      div('',[h('div',{style:{fontSize:'13px',fontWeight:'500'}},[func?.nome||'—']),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.inicio+' • '+f.tipo])]),
+      badgeStatus('Aprovado'),
+    ],{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)'});
+  });
+  const cardFolgas=div('card',[div('sec',['Próximas folgas']),...fRows],{marginBottom:'12px'});
+
+  const chips=funcs.filter(f=>f.status==='Ativo').map(f=>{
+    const c=div('chip',[av(f.nome,18,8),f.nome.split(' ')[0]]);
+    return c;
+  });
+  const cardEquipe=div('card',[div('sec',['Equipe ativa']),div('',chips,{display:'flex',flexWrap:'wrap',gap:'8px'})]);
+
+  return div('',[stats,cardPontos,cardFolgas,cardEquipe]);
 }
 
-function Dashboard({funcs,pontos,folgas,ativos,totalMin,pendentes,setPage}){
-  return(
-    <div>
-      <div className="grid-4" style={{marginBottom:14}}>
-        <div className="stat-card"><div className="stat-label">Ativos</div><div className="stat-value">{ativos}</div><div className="stat-sub">{funcs.length} total</div></div>
-        <div className="stat-card"><div className="stat-label">Horas/mês</div><div className="stat-value">{Math.floor(totalMin/60)}h</div><div className="stat-sub">registradas</div></div>
-        <div className="stat-card"><div className="stat-label">Pendentes</div><div className="stat-value" style={{color:pendentes>0?'var(--yellow)':undefined}}>{pendentes}</div><div className="stat-sub">folgas</div></div>
-        <div className="stat-card"><div className="stat-label">Pontos</div><div className="stat-value">{pontos.length}</div><div className="stat-sub">registros</div></div>
-      </div>
-      <div className="card" style={{marginBottom:12}}>
-        <div className="section-title">Últimos registros</div>
-        {[...pontos].reverse().slice(0,4).map(p=>{
-          const f=funcs.find(f=>f.id===p.funcionarioId);
-          return(
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)'}}>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <div className="avatar" style={{width:28,height:28,fontSize:10}}>{f?ini(f.nome):'?'}</div>
-                <div><div style={{fontSize:13,fontWeight:500}}>{f?.nome}</div><div style={{fontSize:11,color:'var(--text3)'}}>{p.data}</div></div>
-              </div>
-              <div style={{textAlign:'right'}}>
-                <div style={{fontSize:12,color:'var(--text2)'}}>{p.entrada} → {p.saida||'—'}</div>
-                <span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`} style={{fontSize:10}}>{p.status}</span>
-              </div>
-            </div>
-          );
-        })}
-        <button className="btn btn-secondary btn-block" style={{marginTop:10,fontSize:12}} onClick={()=>setPage('ponto')}>Ver todos</button>
-      </div>
-      <div className="card" style={{marginBottom:12}}>
-        <div className="section-title">Próximas folgas</div>
-        {folgas.filter(f=>f.status==='Aprovado').slice(0,3).map(f=>{
-          const func=funcs.find(fu=>fu.id===f.funcionarioId);
-          return(
-            <div key={f.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)'}}>
-              <div><div style={{fontSize:13,fontWeight:500}}>{func?.nome}</div><div style={{fontSize:11,color:'var(--text3)'}}>{f.inicio} • {f.tipo}</div></div>
-              <span className="badge badge-green">Aprovado</span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="card">
-        <div className="section-title">Equipe ativa</div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
-          {funcs.filter(f=>f.status==='Ativo').map(f=><span key={f.id} className="chip"><div className="avatar" style={{width:18,height:18,fontSize:8}}>{ini(f.nome)}</div>{f.nome.split(' ')[0]}</span>)}
-        </div>
-      </div>
-    </div>
-  );
+// ── Funcionários ──────────────────────────────────────────────────
+function buildFuncionarios(){
+  const {funcs,filtro,filtroStatus}=state;
+  const lista=funcs.filter(f=>(filtroStatus==='Todos'||f.status===filtroStatus)&&(f.nome.toLowerCase().includes(filtro.toLowerCase())||f.cargo.toLowerCase().includes(filtro.toLowerCase())));
+
+  const searchRow=div('',[
+    h('input',{class:'inp',placeholder:'Buscar...',value:filtro,oninput:e=>setState({filtro:e.target.value})}),
+    h('select',{class:'sel',style:{width:'110px'},onchange:e=>setState({filtroStatus:e.target.value})},
+      ['Todos','Ativo','Inativo'].map(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===filtroStatus)opt.selected=true;return opt;})
+    ),
+  ],{display:'flex',gap:'8px',marginBottom:'12px'});
+
+  const btnNovo=btn('btn-p btn-full',[icon('ti-plus'),'Novo Funcionário'],()=>{
+    setState({modal:'novo-func',formFunc:{nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'}});
+  });
+  const btnWrap=div('',[ btnNovo],{marginBottom:'12px'});
+
+  // Mobile cards
+  const mCards=div('ml',lista.map(f=>{
+    const mc=div('mc',[
+      div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'600',fontSize:'14px'}},[f.nome]),h('div',{style:{fontSize:'12px',color:'var(--text3)'}},[f.cargo+' • '+f.departamento])],{flex:'1'}),badgeStatus(f.status)],{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}),
+      div('',[badgeContrato(f.contrato),div('chip',[f.escala],{fontSize:'11px'}),h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`R$ ${Number(f.salario).toLocaleString('pt-BR')}`])],{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}),
+      div('',[
+        btn('btn-s btn-sm',[ icon('ti-edit'),'Editar'],()=>abrirEditarFunc(f)),
+        btn('btn-d btn-sm',[icon('ti-trash')],()=>excluirFunc(f.id)),
+      ],{display:'flex',gap:'8px'}),
+    ]);
+    return mc;
+  }));
+  if(lista.length===0)mCards.appendChild(div('empty',['Nenhum funcionário encontrado']));
+
+  // Desktop table
+  const thead=h('thead',{},[h('tr',{},[['Funcionário','Cargo','Contrato','Salário','Escala','Status',''].map(t=>h('th',{},[t]))])]);
+  thead.querySelector('tr').replaceChildren(...['Funcionário','Cargo','Contrato','Salário','Escala','Status',''].map(t=>h('th',{},[t])));
+  const tbody=h('tbody',{},lista.map(f=>{
+    const tr=h('tr',{},[]);
+    const tdName=h('td',{},[div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'500'}},[f.nome]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.email])],{})],{display:'flex',alignItems:'center',gap:'8px'})]);
+    const tdCargo=h('td',{},[f.cargo]);
+    const tdContr=h('td',{},[badgeContrato(f.contrato)]);
+    const tdSal=h('td',{},[`R$ ${Number(f.salario).toLocaleString('pt-BR')}`]);
+    const tdEsc=h('td',{},[div('chip',[f.escala])]);
+    const tdSt=h('td',{},[badgeStatus(f.status)]);
+    const tdAct=h('td',{style:{textAlign:'right'}},[
+      btn('btn-s btn-sm',[icon('ti-edit')],()=>abrirEditarFunc(f)),
+      h('span',{style:{width:'4px',display:'inline-block'}},[]),
+      btn('btn-d btn-sm',[icon('ti-trash')],()=>excluirFunc(f.id)),
+    ]);
+    tr.append(tdName,tdCargo,tdContr,tdSal,tdEsc,tdSt,tdAct);
+    return tr;
+  }));
+  const dt=div('dt',[div('card',[h('table',{class:'tbl'},[thead,tbody])],{padding:'0'})]);
+
+  return div('',[searchRow,btnWrap,mCards,dt]);
 }
 
-function Funcionarios({funcs,setFuncs,showAlert}){
-  const[modal,setModal]=useState(null);
-  const[form,setForm]=useState({nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'});
-  const[filtro,setFiltro]=useState('');
-  const[fs,setFs]=useState('Todos');
-  const abrir=f=>{setForm(f?{...f,salario:f.salario.toString()}:{nome:'',cargo:'',departamento:'',salario:'',contrato:'CLT',status:'Ativo',email:'',telefone:'',dataAdmissao:'',escala:'5x2'});setModal(f?'editar':'novo')};
-  const salvar=()=>{
-    if(!form.nome||!form.cargo){showAlert('Preencha nome e cargo.','red');return}
-    if(modal==='novo'){setFuncs(p=>[...p,{...form,id:Date.now(),salario:Number(form.salario)||0}]);showAlert('Cadastrado!');}
-    else{setFuncs(p=>p.map(f=>f.id===form.id?{...form,salario:Number(form.salario)||0}:f));showAlert('Atualizado!');}
-    setModal(null);
-  };
-  const lista=funcs.filter(f=>(fs==='Todos'||f.status===fs)&&(f.nome.toLowerCase().includes(filtro.toLowerCase())||f.cargo.toLowerCase().includes(filtro.toLowerCase())));
-  return(
-    <div>
-      <div style={{display:'flex',gap:8,marginBottom:12}}>
-        <input className="input" style={{flex:1}} placeholder="Buscar..." value={filtro} onChange={e=>setFiltro(e.target.value)}/>
-        <select className="select" style={{width:110}} value={fs} onChange={e=>setFs(e.target.value)}><option>Todos</option><option>Ativo</option><option>Inativo</option></select>
-      </div>
-      <button className="btn btn-primary btn-block" style={{marginBottom:12}} onClick={()=>abrir(null)}><i className="ti ti-plus"></i>Novo Funcionário</button>
-      <div className="mobile-list">
-        {lista.map(f=>(
-          <div key={f.id} className="mcard">
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-              <div className="avatar">{ini(f.nome)}</div>
-              <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{f.nome}</div><div style={{fontSize:12,color:'var(--text3)'}}>{f.cargo} • {f.departamento}</div></div>
-              <span className={`badge ${f.status==='Ativo'?'badge-green':'badge-red'}`}>{f.status}</span>
-            </div>
-            <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}}>
-              <span className={`badge ${f.contrato==='CLT'?'badge-blue':f.contrato==='PJ'?'badge-purple':'badge-cyan'}`}>{f.contrato}</span>
-              <span className="chip" style={{fontSize:11}}>{f.escala}</span>
-              <span style={{fontSize:12,color:'var(--text2)'}}>R$ {Number(f.salario).toLocaleString('pt-BR')}</span>
-            </div>
-            <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-secondary btn-sm" style={{flex:1,justifyContent:'center'}} onClick={()=>abrir(f)}><i className="ti ti-edit"></i>Editar</button>
-              <button className="btn btn-danger btn-sm" onClick={()=>{setFuncs(p=>p.filter(x=>x.id!==f.id));showAlert('Removido.','red')}}><i className="ti ti-trash"></i></button>
-            </div>
-          </div>
-        ))}
-        {lista.length===0&&<div className="empty-state">Nenhum funcionário encontrado</div>}
-      </div>
-      <div className="desktop-table">
-        <div className="card" style={{padding:0}}>
-          <table className="table">
-            <thead><tr><th>Funcionário</th><th>Cargo</th><th>Contrato</th><th>Salário</th><th>Escala</th><th>Status</th><th style={{textAlign:'right'}}>Ações</th></tr></thead>
-            <tbody>{lista.map(f=>(
-              <tr key={f.id}>
-                <td><div style={{display:'flex',alignItems:'center',gap:8}}><div className="avatar">{ini(f.nome)}</div><div><div style={{fontWeight:500}}>{f.nome}</div><div style={{fontSize:11,color:'var(--text3)'}}>{f.email}</div></div></div></td>
-                <td>{f.cargo}</td>
-                <td><span className={`badge ${f.contrato==='CLT'?'badge-blue':f.contrato==='PJ'?'badge-purple':'badge-cyan'}`}>{f.contrato}</span></td>
-                <td>R$ {Number(f.salario).toLocaleString('pt-BR')}</td>
-                <td><span className="chip">{f.escala}</span></td>
-                <td><span className={`badge ${f.status==='Ativo'?'badge-green':'badge-red'}`}>{f.status}</span></td>
-                <td style={{textAlign:'right'}}><button className="btn btn-secondary btn-sm" style={{marginRight:4}} onClick={()=>abrir(f)}><i className="ti ti-edit"></i></button><button className="btn btn-danger btn-sm" onClick={()=>{setFuncs(p=>p.filter(x=>x.id!==f.id));showAlert('Removido.','red')}}><i className="ti ti-trash"></i></button></td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      </div>
-      {modal&&(
-        <div className="modal-overlay" onClick={()=>setModal(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-title">{modal==='novo'?'Novo Funcionário':'Editar Funcionário'}</div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Nome *</label><input className="input" value={form.nome} onChange={e=>setForm({...form,nome:e.target.value})}/></div><div className="form-group"><label className="form-label">Cargo *</label><input className="input" value={form.cargo} onChange={e=>setForm({...form,cargo:e.target.value})}/></div></div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Departamento</label><input className="input" value={form.departamento} onChange={e=>setForm({...form,departamento:e.target.value})}/></div><div className="form-group"><label className="form-label">Salário (R$)</label><input className="input" type="number" value={form.salario} onChange={e=>setForm({...form,salario:e.target.value})}/></div></div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Email</label><input className="input" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div><div className="form-group"><label className="form-label">Telefone</label><input className="input" value={form.telefone} onChange={e=>setForm({...form,telefone:e.target.value})}/></div></div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Contrato</label><select className="select" value={form.contrato} onChange={e=>setForm({...form,contrato:e.target.value})}><option>CLT</option><option>PJ</option><option>Estágio</option></select></div><div className="form-group"><label className="form-label">Escala</label><select className="select" value={form.escala} onChange={e=>setForm({...form,escala:e.target.value})}><option>5x2</option><option>6x1</option><option>12x36</option><option>Personalizada</option></select></div></div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Admissão</label><input className="input" type="date" value={form.dataAdmissao} onChange={e=>setForm({...form,dataAdmissao:e.target.value})}/></div><div className="form-group"><label className="form-label">Status</label><select className="select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option>Ativo</option><option>Inativo</option></select></div></div>
-            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setModal(null)}>Cancelar</button><button className="btn btn-primary" onClick={salvar}>Salvar</button></div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+function abrirEditarFunc(f){setState({modal:'editar-func',formFunc:{...f,salario:String(f.salario)}})}
+function excluirFunc(id){state.funcs=state.funcs.filter(f=>f.id!==id);showAlert('Removido.','r')}
+function salvarFunc(){
+  const {formFunc,modal}=state;
+  if(!formFunc.nome||!formFunc.cargo){showAlert('Preencha nome e cargo.','r');return}
+  if(modal==='novo-func'){state.funcs=[...state.funcs,{...formFunc,id:Date.now(),salario:Number(formFunc.salario)||0}];showAlert('Cadastrado!');}
+  else{state.funcs=state.funcs.map(f=>f.id===formFunc.id?{...formFunc,salario:Number(formFunc.salario)||0}:f);showAlert('Atualizado!');}
+  setState({modal:null});
 }
 
-function Ponto({funcs,pontos,setPontos,pa,setPa,showAlert,clock}){
-  const[sel,setSel]=useState('');
-  const[tab,setTab]=useState('registrar');
-  const[mm,setMm]=useState(false);
-  const[fm,setFm]=useState({funcionarioId:'',data:'',entrada:'',almocoSaida:'',almocoRetorno:'',saida:'',obs:''});
-  const reg=tipo=>{
-    if(!sel){showAlert('Selecione um funcionário','red');return}
-    const id=parseInt(sel),agora=fmtTime(clock),hoje=clock.toISOString().slice(0,10);
-    if(tipo==='saida'){
-      const at=pa[id]||{};
-      setPontos(p=>[...p,{id:Date.now(),funcionarioId:id,data:hoje,...at,saida:agora,status:'Completo'}]);
-      setPa(p=>{const n={...p};delete n[id];return n});showAlert('Jornada finalizada!');
-    }else{
-      setPa(p=>({...p,[id]:{...(p[id]||{}),[tipo]:agora,data:hoje}}));
-      showAlert(`${tipo==='entrada'?'Entrada':tipo==='almocoSaida'?'Saída almoço':'Retorno'} às ${agora}`);
+// ── Ponto ─────────────────────────────────────────────────────────
+function buildPonto(){
+  const {funcs,pontos,pa,selFunc,tab,clock}=state;
+  const tabs=div('tabs',[
+    h('button',{class:`tab${tab==='registrar'?' active':''}`,onclick:()=>setState({tab:'registrar'})},[' Registrar ']),
+    h('button',{class:`tab${tab==='equipe'?' active':''}`,onclick:()=>setState({tab:'equipe'})},[' Equipe hoje ']),
+    h('button',{class:`tab${tab==='historico'?' active':''}`,onclick:()=>setState({tab:'historico'})},[' Histórico ']),
+  ]);
+
+  let content;
+  if(tab==='registrar'){
+    const ativo=selFunc?pa[parseInt(selFunc)]:null;
+    const btns=[
+      {tipo:'entrada',label:'Entrada',icon:'ti-login',dis:!!(ativo?.entrada)},
+      {tipo:'alSaida',label:'Saída Almoço',icon:'ti-soup',dis:!ativo?.entrada||!!(ativo?.alSaida)},
+      {tipo:'alRetorno',label:'Retorno',icon:'ti-arrow-back-up',dis:!ativo?.alSaida||!!(ativo?.alRetorno)},
+      {tipo:'saida',label:'Saída Final',icon:'ti-logout',dis:!ativo?.entrada},
+    ];
+    const selEl=h('select',{class:'sel',onchange:e=>setState({selFunc:e.target.value})},
+      [h('option',{value:''},['Selecione...']),...funcs.filter(f=>f.status==='Ativo').map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.nome;if(String(f.id)===selFunc)o.selected=true;return o;})]
+    );
+    const pontoBtns=div('pgrid',btns.map(b=>{
+      const pb=h('button',{
+        class:`pbtn ${b.dis?'btn-s':'btn-p'}`,
+        style:{opacity:b.dis?'0.4':'1',cursor:b.dis?'not-allowed':'pointer'},
+        onclick:()=>!b.dis&&registrarPonto(b.tipo),
+      },[icon(b.icon),h('span',{style:{display:'block',marginTop:'4px'}},[b.label])]);
+      return pb;
+    }));
+    const cardReg=div('card',[div('fg',[h('label',{class:'fl'},['Funcionário']),selEl]),pontoBtns],{marginBottom:'12px'});
+    let statusCard=null;
+    if(selFunc&&ativo){
+      const rows=[['entrada','Entrada'],['alSaida','Saída almoço'],['alRetorno','Retorno']].map(([k,l])=>
+        div('',[h('span',{style:{fontSize:'13px',color:'var(--text2)'}},[l]),h('span',{style:{fontWeight:'600',color:ativo[k]?'var(--green)':'var(--text3)'}},[ativo[k]||'—'])],{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)'})
+      );
+      statusCard=div('card',[div('sec',['Status de hoje']),...rows],{marginBottom:'12px'});
     }
-  };
-  const ativo=sel?pa[parseInt(sel)]:null;
-  const btns=[
-    {tipo:'entrada',label:'Entrada',icon:'ti-login',dis:!!(ativo?.entrada)},
-    {tipo:'almocoSaida',label:'Saída Almoço',icon:'ti-soup',dis:!ativo?.entrada||!!(ativo?.almocoSaida)},
-    {tipo:'almocoRetorno',label:'Retorno',icon:'ti-arrow-back-up',dis:!ativo?.almocoSaida||!!(ativo?.almocoRetorno)},
-    {tipo:'saida',label:'Saída Final',icon:'ti-logout',dis:!ativo?.entrada},
-  ];
-  const salvarM=()=>{
-    if(!fm.funcionarioId||!fm.data||!fm.entrada){showAlert('Preencha os campos obrigatórios','red');return}
-    setPontos(p=>[...p,{id:Date.now(),...fm,funcionarioId:parseInt(fm.funcionarioId),status:fm.saida?'Completo':'Incompleto'}]);
-    setMm(false);showAlert('Ponto registrado!');
-  };
-  return(
-    <div>
-      <div className="tabs">
-        <div className={`tab${tab==='registrar'?' active':''}`} onClick={()=>setTab('registrar')}>Registrar</div>
-        <div className={`tab${tab==='equipe'?' active':''}`} onClick={()=>setTab('equipe')}>Equipe hoje</div>
-        <div className={`tab${tab==='historico'?' active':''}`} onClick={()=>setTab('historico')}>Histórico</div>
-      </div>
-      {tab==='registrar'&&(
-        <div>
-          <div className="card" style={{marginBottom:12}}>
-            <div className="form-group"><label className="form-label">Funcionário</label><select className="select" value={sel} onChange={e=>setSel(e.target.value)}><option value="">Selecione...</option>{funcs.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
-            <div className="ponto-grid">
-              {btns.map(b=><button key={b.tipo} className={`ponto-btn ${b.dis?'btn-secondary':'btn-primary'}`} style={{opacity:b.dis?0.4:1,cursor:b.dis?'not-allowed':'pointer'}} disabled={b.dis} onClick={()=>reg(b.tipo)}><i className={`ti ${b.icon}`} style={{display:'block',fontSize:20,marginBottom:4}}></i>{b.label}</button>)}
-            </div>
-          </div>
-          {sel&&ativo&&(
-            <div className="card" style={{marginBottom:12}}>
-              <div className="section-title">Status de hoje</div>
-              {['entrada','almocoSaida','almocoRetorno'].map(t=><div key={t} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)'}}><span style={{fontSize:13,color:'var(--text2)'}}>{t==='entrada'?'Entrada':t==='almocoSaida'?'Saída almoço':'Retorno'}</span><span style={{fontWeight:600,color:ativo[t]?'var(--green)':'var(--text3)'}}>{ativo[t]||'—'}</span></div>)}
-            </div>
-          )}
-          <button className="btn btn-secondary btn-block" onClick={()=>setMm(true)}><i className="ti ti-edit"></i>Registro Manual (Gestor)</button>
-        </div>
-      )}
-      {tab==='equipe'&&(
-        <div style={{display:'flex',flexDirection:'column',gap:8}}>
-          {funcs.filter(f=>f.status==='Ativo').map(f=>{
-            const p2=pa[f.id],ph=pontos.find(p=>p.funcionarioId===f.id&&p.data===clock.toISOString().slice(0,10)&&p.status==='Completo'),d=p2||ph;
-            return(
-              <div key={f.id} className="mcard">
-                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                  <div className="avatar">{ini(f.nome)}</div>
-                  <div style={{flex:1}}><div style={{fontWeight:600}}>{f.nome}</div><div style={{fontSize:11,color:'var(--text3)'}}>{f.cargo}</div></div>
-                  {ph?<span className="badge badge-green">Finalizado</span>:p2?<span className="badge badge-yellow">Em andamento</span>:<span className="badge badge-red">Ausente</span>}
-                </div>
-                {d&&<div style={{display:'flex',gap:12,fontSize:12,color:'var(--text2)',flexWrap:'wrap'}}>
-                  <span>Entrada: <strong style={{color:'var(--text)'}}>{d.entrada||'—'}</strong></span>
-                  <span>Almoço: <strong style={{color:'var(--text)'}}>{d.almocoSaida||'—'}</strong></span>
-                  <span>Retorno: <strong style={{color:'var(--text)'}}>{d.almocoRetorno||'—'}</strong></span>
-                </div>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {tab==='historico'&&(
-        <div>
-          <div className="mobile-list">
-            {[...pontos].reverse().map(p=>{
-              const f=funcs.find(f=>f.id===p.funcionarioId);
-              let m=0;if(p.entrada&&p.saida){m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
-              const ex=m>480?m-480:0;
-              return(
-                <div key={p.id} className="mcard">
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}><div className="avatar" style={{width:26,height:26,fontSize:9}}>{f?ini(f.nome):'?'}</div><div><div style={{fontWeight:600,fontSize:13}}>{f?.nome}</div><div style={{fontSize:11,color:'var(--text3)'}}>{p.data}</div></div></div>
-                    <span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span>
-                  </div>
-                  <div style={{display:'flex',gap:8,flexWrap:'wrap',fontSize:12,color:'var(--text2)'}}>
-                    <span>Entrada: <strong style={{color:'var(--text)'}}>{p.entrada||'—'}</strong></span>
-                    <span>Saída: <strong style={{color:'var(--text)'}}>{p.saida||'—'}</strong></span>
-                    {m>0&&<span>Total: <strong style={{color:ex>0?'var(--green)':'var(--text)'}}>{fmtH(m)}{ex>0?` (+${fmtH(ex)})`:''}</strong></span>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="desktop-table"><div className="card" style={{padding:0}}>
-            <table className="table"><thead><tr><th>Funcionário</th><th>Data</th><th>Entrada</th><th>Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
-            <tbody>{[...pontos].reverse().map(p=>{
-              const f=funcs.find(f=>f.id===p.funcionarioId);let m=0;
-              if(p.entrada&&p.saida){m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
-              return(<tr key={p.id}><td>{f?.nome||'—'}</td><td>{p.data}</td><td>{p.entrada||'—'}</td><td>{p.almocoSaida||'—'}</td><td>{p.almocoRetorno||'—'}</td><td>{p.saida||'—'}</td><td style={{color:m>480?'var(--green)':undefined}}>{m>0?fmtH(m):'—'}</td><td><span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span></td></tr>);
-            })}</tbody></table>
-          </div></div>
-        </div>
-      )}
-      {mm&&(
-        <div className="modal-overlay" onClick={()=>setMm(false)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-title">Registro Manual</div>
-            <div className="form-group"><label className="form-label">Funcionário *</label><select className="select" value={fm.funcionarioId} onChange={e=>setFm({...fm,funcionarioId:e.target.value})}><option value="">Selecione...</option>{funcs.map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">Data *</label><input className="input" type="date" value={fm.data} onChange={e=>setFm({...fm,data:e.target.value})}/></div>
-            <div className="grid-2">
-              <div className="form-group"><label className="form-label">Entrada *</label><input className="input" type="time" value={fm.entrada} onChange={e=>setFm({...fm,entrada:e.target.value})}/></div>
-              <div className="form-group"><label className="form-label">Saída almoço</label><input className="input" type="time" value={fm.almocoSaida} onChange={e=>setFm({...fm,almocoSaida:e.target.value})}/></div>
-            </div>
-            <div className="grid-2">
-              <div className="form-group"><label className="form-label">Retorno</label><input className="input" type="time" value={fm.almocoRetorno} onChange={e=>setFm({...fm,almocoRetorno:e.target.value})}/></div>
-              <div className="form-group"><label className="form-label">Saída final</label><input className="input" type="time" value={fm.saida} onChange={e=>setFm({...fm,saida:e.target.value})}/></div>
-            </div>
-            <div className="form-group"><label className="form-label">Observação</label><input className="input" value={fm.obs} placeholder="Motivo..." onChange={e=>setFm({...fm,obs:e.target.value})}/></div>
-            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setMm(false)}>Cancelar</button><button className="btn btn-primary" onClick={salvarM}>Salvar</button></div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    const btnManual=btn('btn-s btn-full',[icon('ti-edit'),' Registro Manual (Gestor)'],()=>setState({modal:'manual'}));
+    content=div('',[cardReg,...(statusCard?[statusCard]:[]),btnManual]);
+  } else if(tab==='equipe'){
+    const hoje=clock.toISOString().slice(0,10);
+    const cards=funcs.filter(f=>f.status==='Ativo').map(f=>{
+      const p2=pa[f.id],ph=pontos.find(p=>p.fid===f.id&&p.data===hoje&&p.status==='Completo'),d=p2||ph;
+      const statusBadge=ph?badge('Finalizado','bg'):p2?badge('Em andamento','by'):badge('Ausente','br');
+      const mc=div('mc',[
+        div('',[av(f.nome),div('',[h('div',{style:{fontWeight:'600'}},[f.nome]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.cargo])],{flex:'1'}),statusBadge],{display:'flex',alignItems:'center',gap:'10px',marginBottom:d?'8px':'0'}),
+      ]);
+      if(d){
+        mc.appendChild(div('',[
+          h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`Entrada: `]),h('strong',{},[d.entrada||'—']),
+          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Almoço: `]),h('strong',{},[d.alSaida||'—']),
+          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Retorno: `]),h('strong',{},[d.alRetorno||'—']),
+        ],{fontSize:'12px',flexWrap:'wrap',display:'flex'}));
+      }
+      return mc;
+    });
+    content=div('',cards,{display:'flex',flexDirection:'column',gap:'8px'});
+  } else {
+    const mCards=div('ml',[...pontos].reverse().map(p=>{
+      const f=funcs.find(f=>f.id===p.fid);
+      const m=calcMins(p);const ex=m>480?m-480:0;
+      return div('mc',[
+        div('',[div('',[av(f?.nome||'?',26,9),div('',[h('div',{style:{fontWeight:'600',fontSize:'13px'}},[f?.nome||'—']),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[p.data])],{})],{display:'flex',alignItems:'center',gap:'8px'}),badge(p.status,p.status==='Completo'?'bg':'by')],{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}),
+        div('',[
+          h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`Entrada: `]),h('strong',{},[p.entrada||'—']),
+          h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Saída: `]),h('strong',{},[p.saida||'—']),
+          ...(m>0?[h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Total: `]),h('strong',{style:{color:ex>0?'var(--green)':''}},[fmtH(m)+(ex>0?` (+${fmtH(ex)})`:'')])]:[] ),
+        ],{display:'flex',flexWrap:'wrap',fontSize:'12px'}),
+      ]);
+    }));
+    const thead2=h('thead',{},[]);
+    const tr2=h('tr',{},['Funcionário','Data','Entrada','Almoço','Retorno','Saída','Total','Status'].map(t=>h('th',{},[t])));
+    thead2.appendChild(tr2);
+    const tbody2=h('tbody',{},[...pontos].reverse().map(p=>{
+      const f=funcs.find(f=>f.id===p.fid);const m=calcMins(p);
+      const tr=h('tr',{},[]);
+      tr.append(h('td',{},[f?.nome||'—']),h('td',{},[p.data]),h('td',{},[p.entrada||'—']),h('td',{},[p.alSaida||'—']),h('td',{},[p.alRetorno||'—']),h('td',{},[p.saida||'—']),h('td',{style:{color:m>480?'var(--green)':''}},[m>0?fmtH(m):'—']),h('td',{},[badge(p.status,p.status==='Completo'?'bg':'by')]));
+      return tr;
+    }));
+    const dt=div('dt',[div('card',[h('table',{class:'tbl'},[thead2,tbody2])],{padding:'0'})]);
+    content=div('',[mCards,dt]);
+  }
+  return div('',[tabs,content]);
 }
 
-function Escalas({funcs,setFuncs,showAlert}){
+function registrarPonto(tipo){
+  const {selFunc,pa,clock}=state;
+  if(!selFunc){showAlert('Selecione um funcionário','r');return}
+  const id=parseInt(selFunc),agora=fmtTime(clock),hoje=clock.toISOString().slice(0,10);
+  if(tipo==='saida'){
+    const at=pa[id]||{};
+    state.pontos=[...state.pontos,{id:Date.now(),fid:id,data:hoje,...at,saida:agora,status:'Completo'}];
+    const np={...pa};delete np[id];state.pa=np;
+    showAlert('Jornada finalizada!');
+  }else{
+    state.pa={...pa,[id]:{...(pa[id]||{}),[tipo]:agora,data:hoje}};
+    showAlert(`${tipo==='entrada'?'Entrada':tipo==='alSaida'?'Saída almoço':'Retorno'} às ${agora}`);
+  }
+  render();
+}
+
+// ── Escalas ───────────────────────────────────────────────────────
+function buildEscalas(){
+  const {funcs}=state;
   const ed={'5x2':{label:'5x2 — Seg a Sex',e:'08:00',s:'17:00',a:'1h',d:'5 dias',c:40},'6x1':{label:'6x1 — Seg a Sáb',e:'08:00',s:'16:00',a:'1h',d:'6 dias',c:44},'12x36':{label:'12x36 — Dia sim/não',e:'07:00',s:'19:00',a:'1h',d:'alternado',c:42},'Personalizada':{label:'Personalizada',e:'—',s:'—',a:'—',d:'—',c:0}};
-  const[fe,setFe]=useState('');const[ne,setNe]=useState('5x2');
-  const salvar=()=>{if(!fe){showAlert('Selecione um funcionário','red');return}setFuncs(p=>p.map(f=>f.id===parseInt(fe)?{...f,escala:ne}:f));showAlert('Escala atualizada!');setFe('')};
-  return(
-    <div>
-      <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:16}}>
-        {Object.entries(ed).map(([k,e])=>(
-          <div key={k} className="card">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}><div><div style={{fontWeight:600,fontSize:14}}>{e.label}</div><div style={{fontSize:11,color:'var(--text3)'}}>{e.c>0?`${e.c}h/semana`:'Configurável'}</div></div><span className="badge badge-blue">{k}</span></div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,fontSize:12,marginBottom:10}}>
-              <div><span style={{color:'var(--text3)'}}>Entrada: </span><strong>{e.e}</strong></div>
-              <div><span style={{color:'var(--text3)'}}>Saída: </span><strong>{e.s}</strong></div>
-              <div><span style={{color:'var(--text3)'}}>Almoço: </span><strong>{e.a}</strong></div>
-              <div><span style={{color:'var(--text3)'}}>Dias: </span><strong>{e.d}</strong></div>
-            </div>
-            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-              {funcs.filter(f=>f.escala===k&&f.status==='Ativo').map(f=><span key={f.id} className="chip" style={{fontSize:11}}>{f.nome.split(' ')[0]}</span>)}
-              {funcs.filter(f=>f.escala===k&&f.status==='Ativo').length===0&&<span style={{fontSize:12,color:'var(--text3)'}}>Nenhum funcionário</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="card">
-        <div className="section-title">Alterar escala</div>
-        <div className="form-group"><label className="form-label">Funcionário</label><select className="select" value={fe} onChange={e=>setFe(e.target.value)}><option value="">Selecione...</option>{funcs.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome} ({f.escala})</option>)}</select></div>
-        <div className="form-group"><label className="form-label">Nova escala</label><select className="select" value={ne} onChange={e=>setNe(e.target.value)}><option>5x2</option><option>6x1</option><option>12x36</option><option>Personalizada</option></select></div>
-        <button className="btn btn-primary btn-block" onClick={salvar}><i className="ti ti-check"></i>Aplicar Escala</button>
-      </div>
-    </div>
-  );
+  const cards=Object.entries(ed).map(([k,e])=>{
+    const membros=funcs.filter(f=>f.escala===k&&f.status==='Ativo');
+    return div('card',[
+      div('',[h('div',{style:{fontWeight:'600',fontSize:'14px'}},[e.label]),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[e.c>0?`${e.c}h/semana`:'Configurável'])],{marginBottom:'10px'}),
+      div('',[ h('div',{style:{fontSize:'12px',marginBottom:'4px'}},['Entrada: ',h('strong',{},[e.e])]),h('div',{style:{fontSize:'12px',marginBottom:'4px'}},['Saída: ',h('strong',{},[e.s])]),h('div',{style:{fontSize:'12px',marginBottom:'4px'}},['Almoço: ',h('strong',{},[e.a])]),h('div',{style:{fontSize:'12px'}},['Dias: ',h('strong',{},[e.d])]) ],{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',marginBottom:'10px'}),
+      div('',[...membros.map(f=>div('chip',[f.nome.split(' ')[0]],{fontSize:'11px'})),...(membros.length===0?[h('span',{style:{fontSize:'12px',color:'var(--text3)'}},[' Nenhum funcionário'])]:[] )],{display:'flex',flexWrap:'wrap',gap:'4px'}),
+    ]);
+  });
+
+  let feState='',neState='5x2';
+  const selF=h('select',{class:'sel',onchange:e=>{feState=e.target.value}},[h('option',{value:''},['Selecione...']),...funcs.filter(f=>f.status==='Ativo').map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=`${f.nome} (${f.escala})`;return o;})]);
+  const selE=h('select',{class:'sel',onchange:e=>{neState=e.target.value}},['5x2','6x1','12x36','Personalizada'].map(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;return opt;}));
+  const cardAlt=div('card',[
+    div('sec',['Alterar escala']),
+    div('fg',[h('label',{class:'fl'},['Funcionário']),selF]),
+    div('fg',[h('label',{class:'fl'},['Nova escala']),selE]),
+    btn('btn-p btn-full',[icon('ti-check'),' Aplicar'],()=>{
+      if(!feState){showAlert('Selecione um funcionário','r');return}
+      state.funcs=state.funcs.map(f=>f.id===parseInt(feState)?{...f,escala:neState}:f);
+      showAlert('Escala atualizada!');render();
+    }),
+  ]);
+  return div('',[div('',cards,{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}),cardAlt]);
 }
 
-function Folgas({funcs,folgas,setFolgas,showAlert}){
-  const[modal,setModal]=useState(false);
-  const[fs,setFs]=useState('Todos');
-  const[form,setForm]=useState({funcionarioId:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''});
-  const tipos=['Folga semanal','Banco de horas','Férias','Atestado','Feriado','Licença'];
-  const salvar=()=>{
-    if(!form.funcionarioId||!form.inicio){showAlert('Preencha os campos obrigatórios','red');return}
-    setFolgas(p=>[...p,{id:Date.now(),...form,funcionarioId:parseInt(form.funcionarioId),status:'Pendente'}]);
-    setModal(false);showAlert('Solicitação criada!');
+// ── Folgas ────────────────────────────────────────────────────────
+function buildFolgas(){
+  const {funcs,folgas,filtroFolga}=state;
+  const pendentes=folgas.filter(f=>f.status==='Pendente');
+  const lista=folgas.filter(f=>filtroFolga==='Todos'||f.status===filtroFolga);
+  const alertEl=pendentes.length>0?div('alert ay',[`${pendentes.length} solicitação(ões) pendente(s).`]):null;
+  const sel=h('select',{class:'sel',style:{flex:'1'},onchange:e=>setState({filtroFolga:e.target.value})},
+    ['Todos','Pendente','Aprovado','Recusado'].map(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===filtroFolga)opt.selected=true;return opt;})
+  );
+  const barraFiltro=div('',[sel,btn('btn-p',[icon('ti-plus'),' Nova'],()=>setState({modal:'nova-folga',formFolga:{fid:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''}}))],{display:'flex',gap:'8px',marginBottom:'12px'});
+  const cards=lista.map(f=>{
+    const func=funcs.find(fu=>fu.id===f.fid);
+    const mc=div('mc',[
+      div('',[av(func?.nome||'?',28,10),div('',[h('div',{style:{fontWeight:'600',fontSize:'13px'}},[func?.nome||'—']),h('div',{style:{fontSize:'11px',color:'var(--text3)'}},[f.inicio+(f.fim&&f.fim!==f.inicio?` → ${f.fim}`:'')])],{flex:'1'}),badgeStatus(f.status)],{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}),
+      div('',[badge(f.tipo,'bb'),
+        ...(f.status==='Pendente'?[div('',[
+          btn('btn-ok btn-sm',[icon('ti-check'),' Aprovar'],()=>{state.folgas=state.folgas.map(x=>x.id===f.id?{...x,status:'Aprovado'}:x);showAlert('Aprovado!')}),
+          h('span',{style:{width:'4px',display:'inline-block'}},[]),
+          btn('btn-d btn-sm',[icon('ti-x')],()=>{state.folgas=state.folgas.map(x=>x.id===f.id?{...x,status:'Recusado'}:x);showAlert('Recusado.','r')}),
+        ],{display:'flex',gap:'6px'})]:[] )
+      ],{display:'flex',justifyContent:'space-between',alignItems:'center'}),
+      ...(f.obs?[h('div',{style:{fontSize:'11px',color:'var(--text3)',marginTop:'6px'}},[f.obs])]:[] ),
+    ]);
+    return mc;
+  });
+  const lista2=div('',cards,{display:'flex',flexDirection:'column',gap:'8px'});
+  if(lista.length===0)lista2.appendChild(div('empty',['Nenhuma folga encontrada']));
+  return div('',[...(alertEl?[alertEl]:[]),barraFiltro,lista2]);
+}
+
+// ── Relatórios ────────────────────────────────────────────────────
+function buildRelatorios(){
+  const {funcs,pontos,folgas,relFunc,relMes}=state;
+  const selF=h('select',{class:'sel',onchange:e=>setState({relFunc:e.target.value})},[h('option',{value:''},['Selecione o funcionário...']),...funcs.map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.nome;if(String(f.id)===relFunc)o.selected=true;return o;})]);
+  const selM=h('input',{class:'inp',type:'month',value:relMes,onchange:e=>setState({relMes:e.target.value})});
+  const top=div('',[div('fg',[selF]),div('fg',[selM])],{marginBottom:'16px'});
+
+  if(!relFunc){
+    const empty=div('empty',[ icon('ti-chart-bar'),' Selecione um funcionário e mês'],{paddingTop:'60px'});
+    empty.querySelector('.ti-chart-bar').style.cssText='font-size:48px;color:var(--text3);display:block;marginBottom:12px';
+    return div('',[top,empty]);
+  }
+
+  const fid=parseInt(relFunc),func=funcs.find(f=>f.id===fid);
+  const pf=pontos.filter(p=>p.fid===fid&&p.data.startsWith(relMes));
+  let tot=0,ext=0,fal=0,atr=0;
+  pf.forEach(p=>{const m=calcMins(p);tot+=m;if(m>480)ext+=(m-480);else if(m<480)fal+=(480-m);if(toMin(p.entrada)>8*60+5)atr++;});
+  const dt=pf.filter(p=>p.status==='Completo').length;
+  const df=folgas.filter(f=>f.fid===fid&&f.status==='Aprovado'&&f.inicio.startsWith(relMes)).length;
+  const bh=ext-fal;
+
+  const header=div('card',[
+    div('',[av(func.nome,40,14),div('',[h('div',{style:{fontWeight:'600',fontSize:'14px'}},[func.nome]),h('div',{style:{fontSize:'12px',color:'var(--text3)'}},[func.cargo+' • '+func.contrato])],{flex:'1'}),badge(relMes,'bb')],{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}),
+    div('g2',[
+      div('scard',[div('slabel',['Trabalhadas']),h('div',{class:'sval',style:{fontSize:'20px'}},[fmtH(tot)]),div('hbar',[h('div',{class:'hfill',style:{width:Math.min(100,Math.round(tot/(160*60)*100))+'%',background:'var(--accent)'}},[])]),]),
+      div('scard',[div('slabel',['Extras']),h('div',{class:'sval',style:{fontSize:'20px',color:'var(--green)'}},[fmtH(ext)]),]),
+      div('scard',[div('slabel',['Faltantes']),h('div',{class:'sval',style:{fontSize:'20px',color:fal>0?'var(--red)':''}},[fmtH(fal)]),]),
+      div('scard',[div('slabel',['Banco de horas']),h('div',{class:'sval',style:{fontSize:'20px',color:bh>=0?'var(--green)':'var(--red)'}},[( bh>=0?'+':'')+fmtH(Math.abs(bh))]),]),
+    ],{gap:'8px',marginBottom:'8px'}),
+    div('g3',[
+      div('scard',[div('slabel',['Dias trab.']),h('div',{class:'sval',style:{fontSize:'20px'}},[String(dt)])]),
+      div('scard',[div('slabel',['Dias folga']),h('div',{class:'sval',style:{fontSize:'20px'}},[String(df)])]),
+      div('scard',[div('slabel',['Atrasos']),h('div',{class:'sval',style:{fontSize:'20px',color:atr>0?'var(--yellow)':''}},[String(atr)])]),
+    ],{gap:'8px'}),
+  ],{marginBottom:'12px'});
+
+  const mCards=div('ml',pf.sort((a,b)=>a.data.localeCompare(b.data)).map(p=>{
+    const m=calcMins(p);
+    return div('mc',[
+      div('',[h('strong',{style:{fontSize:'13px'}},[p.data]),badge(p.status,p.status==='Completo'?'bg':'by')],{display:'flex',justifyContent:'space-between',marginBottom:'6px'}),
+      div('',[h('span',{style:{fontSize:'12px',color:'var(--text2)'}},[`Entrada: `]),h('strong',{},[p.entrada||'—']),h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Saída: `]),h('strong',{},[p.saida||'—']),...(m>0?[h('span',{style:{fontSize:'12px',color:'var(--text2)',marginLeft:'12px'}},[` Total: `]),h('strong',{style:{color:m>480?'var(--green)':''}},[fmtH(m)])]:[] )],{display:'flex',flexWrap:'wrap',fontSize:'12px'}),
+    ]);
+  }));
+  if(pf.length===0)mCards.appendChild(div('empty',['Nenhum registro neste mês']));
+
+  const thead=h('thead',{},[h('tr',{},['Data','Entrada','S.Almoço','Retorno','Saída','Total','Status'].map(t=>h('th',{},[t])))]);
+  const tbody=h('tbody',{},pf.sort((a,b)=>a.data.localeCompare(b.data)).map(p=>{
+    const m=calcMins(p);
+    const tr=h('tr',{},[]);
+    tr.append(h('td',{},[p.data]),h('td',{},[p.entrada||'—']),h('td',{},[p.alSaida||'—']),h('td',{},[p.alRetorno||'—']),h('td',{},[p.saida||'—']),h('td',{style:{color:m>480?'var(--green)':''}},[m>0?fmtH(m):'—']),h('td',{},[badge(p.status,p.status==='Completo'?'bg':'by')]));
+    return tr;
+  }));
+  const dt2=div('dt',[div('card',[h('table',{class:'tbl'},[thead,tbody])],{padding:'0'})]);
+  return div('',[top,header,mCards,dt2]);
+}
+
+// ── Modals ────────────────────────────────────────────────────────
+function buildModal(){
+  const {modal,formFunc,formManual,formFolga,funcs}=state;
+  if(!modal)return null;
+
+  const inp=(id,label,type,val,key,extra={})=>{
+    const el=h('input',{class:'inp',type,value:val||'',...extra,onchange:e=>state[id]={...state[id],[key]:e.target.value}});
+    return div('fg',[h('label',{class:'fl'},[label]),el]);
   };
-  const lista=folgas.filter(f=>fs==='Todos'||f.status===fs);
-  const pend=folgas.filter(f=>f.status==='Pendente');
-  return(
-    <div>
-      {pend.length>0&&<div className="alert alert-yellow">{pend.length} solicitação(ões) pendente(s).</div>}
-      <div style={{display:'flex',gap:8,marginBottom:12}}>
-        <select className="select" style={{flex:1}} value={fs} onChange={e=>setFs(e.target.value)}><option>Todos</option><option>Pendente</option><option>Aprovado</option><option>Recusado</option></select>
-        <button className="btn btn-primary" onClick={()=>{setForm({funcionarioId:'',tipo:'Folga semanal',inicio:'',fim:'',obs:''});setModal(true)}}><i className="ti ti-plus"></i>Nova</button>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        {lista.map(f=>{
-          const func=funcs.find(fu=>fu.id===f.funcionarioId);
-          return(
-            <div key={f.id} className="mcard">
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                <div className="avatar" style={{width:28,height:28,fontSize:10}}>{func?ini(func.nome):'?'}</div>
-                <div style={{flex:1}}><div style={{fontWeight:600,fontSize:13}}>{func?.nome||'—'}</div><div style={{fontSize:11,color:'var(--text3)'}}>{f.inicio}{f.fim&&f.fim!==f.inicio?` → ${f.fim}`:''}</div></div>
-                <span className={`badge ${f.status==='Aprovado'?'badge-green':f.status==='Recusado'?'badge-red':'badge-yellow'}`}>{f.status}</span>
-              </div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span className="badge badge-blue">{f.tipo}</span>
-                {f.status==='Pendente'&&<div style={{display:'flex',gap:6}}>
-                  <button className="btn btn-success btn-sm" onClick={()=>{setFolgas(p=>p.map(x=>x.id===f.id?{...x,status:'Aprovado'}:x));showAlert('Aprovado!')}}><i className="ti ti-check"></i>Aprovar</button>
-                  <button className="btn btn-danger btn-sm" onClick={()=>{setFolgas(p=>p.map(x=>x.id===f.id?{...x,status:'Recusado'}:x));showAlert('Recusado.','red')}}><i className="ti ti-x"></i></button>
-                </div>}
-              </div>
-              {f.obs&&<div style={{fontSize:11,color:'var(--text3)',marginTop:6}}>{f.obs}</div>}
-            </div>
-          );
-        })}
-        {lista.length===0&&<div className="empty-state">Nenhuma folga encontrada</div>}
-      </div>
-      {modal&&(
-        <div className="modal-overlay" onClick={()=>setModal(false)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-title">Nova Solicitação de Folga</div>
-            <div className="form-group"><label className="form-label">Funcionário *</label><select className="select" value={form.funcionarioId} onChange={e=>setForm({...form,funcionarioId:e.target.value})}><option value="">Selecione...</option>{funcs.filter(f=>f.status==='Ativo').map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">Tipo</label><select className="select" value={form.tipo} onChange={e=>setForm({...form,tipo:e.target.value})}>{tipos.map(t=><option key={t}>{t}</option>)}</select></div>
-            <div className="grid-2"><div className="form-group"><label className="form-label">Início *</label><input className="input" type="date" value={form.inicio} onChange={e=>setForm({...form,inicio:e.target.value})}/></div><div className="form-group"><label className="form-label">Fim</label><input className="input" type="date" value={form.fim} onChange={e=>setForm({...form,fim:e.target.value})}/></div></div>
-            <div className="form-group"><label className="form-label">Observação</label><input className="input" value={form.obs} placeholder="Justificativa..." onChange={e=>setForm({...form,obs:e.target.value})}/></div>
-            <div className="modal-actions"><button className="btn btn-secondary" onClick={()=>setModal(false)}>Cancelar</button><button className="btn btn-primary" onClick={salvar}>Salvar</button></div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const sel2=(id,label,val,key,opts)=>{
+    const s=h('select',{class:'sel',onchange:e=>state[id]={...state[id],[key]:e.target.value}},opts.map(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;if(o===val)opt.selected=true;return opt;}));
+    return div('fg',[h('label',{class:'fl'},[label]),s]);
+  };
+
+  let title='',body=[],onSave=null;
+
+  if(modal==='novo-func'||modal==='editar-func'){
+    title=modal==='novo-func'?'Novo Funcionário':'Editar Funcionário';
+    body=[
+      div('g2',[inp('formFunc','Nome *','text',formFunc.nome,'nome'),inp('formFunc','Cargo *','text',formFunc.cargo,'cargo')]),
+      div('g2',[inp('formFunc','Departamento','text',formFunc.departamento,'departamento'),inp('formFunc','Salário (R$)','number',formFunc.salario,'salario')]),
+      div('g2',[inp('formFunc','Email','email',formFunc.email,'email'),inp('formFunc','Telefone','text',formFunc.telefone,'telefone')]),
+      div('g2',[sel2('formFunc','Contrato',formFunc.contrato,'contrato',['CLT','PJ','Estágio']),sel2('formFunc','Escala',formFunc.escala,'escala',['5x2','6x1','12x36','Personalizada'])]),
+      div('g2',[inp('formFunc','Admissão','date',formFunc.dataAdmissao,'dataAdmissao'),sel2('formFunc','Status',formFunc.status,'status',['Ativo','Inativo'])]),
+    ];
+    onSave=salvarFunc;
+  } else if(modal==='manual'){
+    title='Registro Manual';
+    const selFEl=h('select',{class:'sel',onchange:e=>state.formManual={...state.formManual,fid:e.target.value}},[h('option',{value:''},['Selecione...']),...funcs.map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.nome;if(String(f.id)===formManual.fid)o.selected=true;return o;})]);
+    body=[
+      div('fg',[h('label',{class:'fl'},['Funcionário *']),selFEl]),
+      inp('formManual','Data *','date',formManual.data,'data'),
+      div('g2',[inp('formManual','Entrada *','time',formManual.entrada,'entrada'),inp('formManual','Saída almoço','time',formManual.alSaida,'alSaida')]),
+      div('g2',[inp('formManual','Retorno','time',formManual.alRetorno,'alRetorno'),inp('formManual','Saída final','time',formManual.saida,'saida')]),
+      inp('formManual','Observação','text',formManual.obs,'obs'),
+    ];
+    onSave=()=>{
+      const {formManual}=state;
+      if(!formManual.fid||!formManual.data||!formManual.entrada){showAlert('Preencha os campos obrigatórios','r');return}
+      state.pontos=[...state.pontos,{id:Date.now(),...formManual,fid:parseInt(formManual.fid),status:formManual.saida?'Completo':'Incompleto'}];
+      setState({modal:null});showAlert('Ponto registrado!');
+    };
+  } else if(modal==='nova-folga'){
+    title='Nova Solicitação de Folga';
+    const tipos=['Folga semanal','Banco de horas','Férias','Atestado','Feriado','Licença'];
+    const selFEl=h('select',{class:'sel',onchange:e=>state.formFolga={...state.formFolga,fid:e.target.value}},[h('option',{value:''},['Selecione...']),...funcs.filter(f=>f.status==='Ativo').map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.nome;if(String(f.id)===formFolga.fid)o.selected=true;return o;})]);
+    body=[
+      div('fg',[h('label',{class:'fl'},['Funcionário *']),selFEl]),
+      sel2('formFolga','Tipo',formFolga.tipo,'tipo',tipos),
+      div('g2',[inp('formFolga','Início *','date',formFolga.inicio,'inicio'),inp('formFolga','Fim','date',formFolga.fim,'fim')]),
+      inp('formFolga','Observação','text',formFolga.obs,'obs'),
+    ];
+    onSave=()=>{
+      const {formFolga}=state;
+      if(!formFolga.fid||!formFolga.inicio){showAlert('Preencha os campos obrigatórios','r');return}
+      state.folgas=[...state.folgas,{id:Date.now(),...formFolga,fid:parseInt(formFolga.fid),status:'Pendente'}];
+      setState({modal:null});showAlert('Solicitação criada!');
+    };
+  }
+
+  const modalEl=div('modal',[
+    div('modal-t',[title]),
+    ...body,
+    div('modal-a',[
+      btn('btn-s',['Cancelar'],()=>setState({modal:null})),
+      btn('btn-p',['Salvar'],onSave),
+    ]),
+  ]);
+  const overlay=div('ov',[modalEl]);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)setState({modal:null})});
+  return overlay;
 }
 
-function Relatorios({funcs,pontos,folgas}){
-  const[sel,setSel]=useState('');const[mes,setMes]=useState('2025-06');
-  const fid=parseInt(sel),func=funcs.find(f=>f.id===fid);
-  const rel=sel?()=>{
-    const pf=pontos.filter(p=>p.funcionarioId===fid&&p.data.startsWith(mes));
-    let tot=0,ext=0,fal=0,atr=0;const dt=pf.filter(p=>p.status==='Completo').length;
-    pf.forEach(p=>{if(p.entrada&&p.saida){let m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida));tot+=m;if(m>480)ext+=(m-480);else if(m<480)fal+=(480-m);if(toMin(p.entrada)>8*60+5)atr++}});
-    const df=folgas.filter(f=>f.funcionarioId===fid&&f.status==='Aprovado'&&f.inicio.startsWith(mes)).length;
-    return{tot,ext,fal,atr,dt,df,bh:ext-fal,reg:pf};
-  }():null;
-  return(
-    <div>
-      <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:16}}>
-        <select className="select" value={sel} onChange={e=>setSel(e.target.value)}><option value="">Selecione o funcionário...</option>{funcs.map(f=><option key={f.id} value={f.id}>{f.nome}</option>)}</select>
-        <input className="input" type="month" value={mes} onChange={e=>setMes(e.target.value)}/>
-      </div>
-      {rel?(
-        <div>
-          <div className="card" style={{marginBottom:12}}>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-              <div className="avatar" style={{width:40,height:40,fontSize:14}}>{ini(func.nome)}</div>
-              <div><div style={{fontWeight:600,fontSize:14}}>{func.nome}</div><div style={{fontSize:12,color:'var(--text3)'}}>{func.cargo} • {func.contrato}</div></div>
-              <span className="badge badge-blue" style={{marginLeft:'auto'}}>{mes}</span>
-            </div>
-            <div className="grid-2" style={{gap:8,marginBottom:8}}>
-              <div className="stat-card"><div className="stat-label">Trabalhadas</div><div className="stat-value" style={{fontSize:20}}>{fmtH(rel.tot)}</div><div className="horas-bar"><div className="horas-fill" style={{width:`${Math.min(100,Math.round(rel.tot/(160*60)*100))}%`,background:'var(--accent)'}}></div></div></div>
-              <div className="stat-card"><div className="stat-label">Extras</div><div className="stat-value" style={{fontSize:20,color:'var(--green)'}}>{fmtH(rel.ext)}</div></div>
-              <div className="stat-card"><div className="stat-label">Faltantes</div><div className="stat-value" style={{fontSize:20,color:rel.fal>0?'var(--red)':undefined}}>{fmtH(rel.fal)}</div></div>
-              <div className="stat-card"><div className="stat-label">Banco de horas</div><div className="stat-value" style={{fontSize:20,color:rel.bh>=0?'var(--green)':'var(--red)'}}>{rel.bh>=0?'+':''}{fmtH(Math.abs(rel.bh))}</div></div>
-            </div>
-            <div className="grid-3" style={{gap:8}}>
-              <div className="stat-card"><div className="stat-label">Dias trab.</div><div className="stat-value" style={{fontSize:20}}>{rel.dt}</div></div>
-              <div className="stat-card"><div className="stat-label">Dias folga</div><div className="stat-value" style={{fontSize:20}}>{rel.df}</div></div>
-              <div className="stat-card"><div className="stat-label">Atrasos</div><div className="stat-value" style={{fontSize:20,color:rel.atr>0?'var(--yellow)':undefined}}>{rel.atr}</div></div>
-            </div>
-          </div>
-          <div className="mobile-list">
-            {rel.reg.sort((a,b)=>a.data.localeCompare(b.data)).map(p=>{
-              let m=0;if(p.entrada&&p.saida){m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
-              return(<div key={p.id} className="mcard"><div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><strong style={{fontSize:13}}>{p.data}</strong><span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span></div><div style={{display:'flex',gap:10,flexWrap:'wrap',fontSize:12,color:'var(--text2)'}}><span>Entrada: <strong style={{color:'var(--text)'}}>{p.entrada||'—'}</strong></span><span>Saída: <strong style={{color:'var(--text)'}}>{p.saida||'—'}</strong></span>{m>0&&<span>Total: <strong style={{color:m>480?'var(--green)':'var(--text)'}}>{fmtH(m)}</strong></span>}</div></div>);
-            })}
-            {rel.reg.length===0&&<div className="empty-state">Nenhum registro neste mês</div>}
-          </div>
-          <div className="desktop-table"><div className="card" style={{padding:0}}>
-            <table className="table"><thead><tr><th>Data</th><th>Entrada</th><th>S. Almoço</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr></thead>
-            <tbody>{rel.reg.sort((a,b)=>a.data.localeCompare(b.data)).map(p=>{
-              let m=0;if(p.entrada&&p.saida){m=toMin(p.saida)-toMin(p.entrada);if(p.almocoSaida&&p.almocoRetorno)m-=(toMin(p.almocoRetorno)-toMin(p.almocoSaida))}
-              return(<tr key={p.id}><td>{p.data}</td><td>{p.entrada||'—'}</td><td>{p.almocoSaida||'—'}</td><td>{p.almocoRetorno||'—'}</td><td>{p.saida||'—'}</td><td style={{color:m>480?'var(--green)':undefined}}>{m>0?fmtH(m):'—'}</td><td><span className={`badge ${p.status==='Completo'?'badge-green':'badge-yellow'}`}>{p.status}</span></td></tr>);
-            })}</tbody></table>
-          </div></div>
-        </div>
-      ):(
-        <div className="empty-state" style={{paddingTop:60}}>
-          <i className="ti ti-chart-bar" style={{fontSize:48,color:'var(--text3)',display:'block',marginBottom:12}}></i>
-          Selecione um funcionário e mês para gerar o relatório
-        </div>
-      )}
-    </div>
-  );
+// ── Main render ───────────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('app');
+  root.innerHTML='';
+  const app=div('app',[]);
+  app.appendChild(buildSidebar());
+  const main=div('main',[]);
+  main.appendChild(buildTopbar());
+  if(state.alert){
+    const aw=div('',[ div(`alert a${state.alert.type}`,[state.alert.msg])],{padding:'10px 16px 0'});
+    main.appendChild(aw);
+  }
+  const content=div('content',[]);
+  const pages={dashboard:buildDashboard,funcionarios:buildFuncionarios,ponto:buildPonto,escalas:buildEscalas,folgas:buildFolgas,relatorios:buildRelatorios};
+  content.appendChild((pages[state.page]||buildDashboard)());
+  main.appendChild(content);
+  app.appendChild(main);
+  app.appendChild(buildBottomNav());
+  const modal=buildModal();
+  if(modal)app.appendChild(modal);
+  root.appendChild(app);
 }
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+render();
 </script>
 </body>
 </html>
