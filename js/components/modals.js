@@ -1,7 +1,8 @@
-import { state, setState, showAlert } from '../state.js';
+import { state, setState, showAlert, recarregarPontos, recarregarFolgas } from '../state.js';
 import { icon } from '../helpers.js';
 import { TIPOS_FOLGA } from '../data.js';
 import { salvarFunc } from './funcionarios.js';
+import * as api from '../api.js';
 
 export function buildModal() {
   const { modal } = state;
@@ -144,22 +145,32 @@ function actions(onSave) {
   return d;
 }
 
-function salvarManual() {
+async function salvarManual() {
   const { formManual } = state;
   if (!formManual.fid || !formManual.data || !formManual.entrada) {
     showAlert('Preencha os campos obrigatórios', 'r'); return;
   }
-  state.pontos = [...state.pontos, { id: Date.now(), ...formManual, fid: parseInt(formManual.fid), status: formManual.saida ? 'Completo' : 'Incompleto' }];
-  setState({ modal: null });
-  showAlert('Ponto registrado!');
+  try {
+    await api.criarPontoManual(formManual);
+    await recarregarPontos();
+    setState({ modal: null });
+    showAlert('Ponto registrado!');
+  } catch (err) {
+    showAlert(err.message, 'r');
+  }
 }
 
-function salvarFolga() {
+async function salvarFolga() {
   const { formFolga } = state;
   if (!formFolga.fid || !formFolga.inicio) {
     showAlert('Preencha os campos obrigatórios', 'r'); return;
   }
-  state.folgas = [...state.folgas, { id: Date.now(), ...formFolga, fid: parseInt(formFolga.fid), status: 'Pendente' }];
-  setState({ modal: null });
-  showAlert('Solicitação criada!');
+  try {
+    await api.criarFolga(formFolga);
+    await recarregarFolgas();
+    setState({ modal: null });
+    showAlert('Solicitação criada!');
+  } catch (err) {
+    showAlert(err.message, 'r');
+  }
 }

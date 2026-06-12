@@ -1,5 +1,6 @@
-import { state, setState, showAlert } from '../state.js';
+import { state, setState, showAlert, recarregarFuncionarios } from '../state.js';
 import { av, badge, badgeStatus, badgeContrato, icon } from '../helpers.js';
+import * as api from '../api.js';
 
 export function buildFuncionarios() {
   const { funcs, filtro, filtroStatus } = state;
@@ -134,20 +135,33 @@ function abrirEditar(f) {
   setState({ modal: 'editar-func', formFunc: { ...f, salario: String(f.salario) } });
 }
 
-function excluir(id) {
-  state.funcs = state.funcs.filter(f => f.id !== id);
-  showAlert('Funcionário removido.', 'r');
+async function excluir(id) {
+  if (!confirm('Remover este funcionário?')) return;
+  try {
+    await api.deletarFuncionario(id);
+    await recarregarFuncionarios();
+    showAlert('Funcionário removido.', 'r');
+  } catch (err) {
+    showAlert(err.message, 'r');
+  }
 }
 
-export function salvarFunc() {
+export async function salvarFunc() {
   const { formFunc, modal } = state;
   if (!formFunc.nome || !formFunc.cargo) { showAlert('Preencha nome e cargo.', 'r'); return; }
-  if (modal === 'novo-func') {
-    state.funcs = [...state.funcs, { ...formFunc, id: Date.now(), salario: Number(formFunc.salario) || 0 }];
-    showAlert('Funcionário cadastrado!');
-  } else {
-    state.funcs = state.funcs.map(f => f.id === formFunc.id ? { ...formFunc, salario: Number(formFunc.salario) || 0 } : f);
-    showAlert('Atualizado!');
+  try {
+    if (modal === 'novo-func') {
+      await api.criarFuncionario(formFunc);
+      await recarregarFuncionarios();
+      setState({ modal: null });
+      showAlert('Funcionário cadastrado!');
+    } else {
+      await api.atualizarFuncionario(formFunc.id, formFunc);
+      await recarregarFuncionarios();
+      setState({ modal: null });
+      showAlert('Atualizado!');
+    }
+  } catch (err) {
+    showAlert(err.message, 'r');
   }
-  setState({ modal: null });
 }

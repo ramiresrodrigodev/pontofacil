@@ -1,6 +1,7 @@
-import { state, setState, showAlert } from '../state.js';
+import { state, setState, showAlert, recarregarFolgas } from '../state.js';
 import { av, badge, icon } from '../helpers.js';
 import { TIPOS_FOLGA } from '../data.js';
+import * as api from '../api.js';
 
 export function buildFolgas() {
   const { funcs, folgas, filtroFolga } = state;
@@ -68,15 +69,21 @@ export function buildFolgas() {
         const acoes = document.createElement('div'); acoes.style.cssText = 'display:flex;gap:6px';
         const bAp = document.createElement('button'); bAp.className = 'btn btn-ok btn-sm';
         bAp.append(icon('ti-check'), document.createTextNode(' Aprovar'));
-        bAp.addEventListener('click', () => {
-          state.folgas = state.folgas.map(x => x.id === f.id ? { ...x, status: 'Aprovado' } : x);
-          showAlert('Folga aprovada!');
+        bAp.addEventListener('click', async () => {
+          try {
+            await api.atualizarStatusFolga(f.id, 'Aprovado');
+            await recarregarFolgas();
+            showAlert('Folga aprovada!');
+          } catch (err) { showAlert(err.message, 'r'); }
         });
         const bRe = document.createElement('button'); bRe.className = 'btn btn-d btn-sm';
         bRe.appendChild(icon('ti-x'));
-        bRe.addEventListener('click', () => {
-          state.folgas = state.folgas.map(x => x.id === f.id ? { ...x, status: 'Recusado' } : x);
-          showAlert('Folga recusada.', 'r');
+        bRe.addEventListener('click', async () => {
+          try {
+            await api.atualizarStatusFolga(f.id, 'Recusado');
+            await recarregarFolgas();
+            showAlert('Folga recusada.', 'r');
+          } catch (err) { showAlert(err.message, 'r'); }
         });
         acoes.append(bAp, bRe);
         row2.appendChild(acoes);

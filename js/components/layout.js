@@ -1,6 +1,7 @@
 import { state, setState } from '../state.js';
-import { icon, fmtTime } from '../helpers.js';
+import { icon, fmtTime, ini } from '../helpers.js';
 import { PAGES } from '../data.js';
+import { logout } from '../api.js';
 
 const LOGO_SVG = `
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,10 +104,18 @@ export function buildTopbar() {
   clockEl.textContent = fmtTime(state.clock);
   clockWrap.append(clockIcon, clockEl);
 
+  const nomeUser = state.usuario?.nome || 'Gestor';
   const avatar = document.createElement('div');
   avatar.className = 'av';
   Object.assign(avatar.style, { width:'32px', height:'32px', fontSize:'11px', cursor:'pointer' });
-  avatar.textContent = 'GE';
+  avatar.title = `${nomeUser} — sair`;
+  avatar.textContent = ini(nomeUser);
+  avatar.addEventListener('click', () => {
+    if (confirm(`Sair da conta de ${nomeUser}?`)) {
+      logout();
+      setState({ view: 'login', usuario: null, page: 'dashboard', funcs: [], pontos: [], folgas: [], pa: {} });
+    }
+  });
 
   right.append(clockWrap, avatar);
   topbar.append(left, right);

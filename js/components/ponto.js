@@ -1,5 +1,6 @@
-import { state, setState, showAlert } from '../state.js';
+import { state, setState, showAlert, recarregarPontos } from '../state.js';
 import { av, badge, calcMins, fmtH, fmtTime, icon } from '../helpers.js';
+import * as api from '../api.js';
 
 export function buildPonto() {
   const { funcs, pontos, pa, selFunc, tab } = state;
@@ -201,22 +202,20 @@ function buildHistorico(funcs, pontos) {
 }
 
 // ── Ação registrar ponto ──────────────────────────────────────────
-function registrarPonto(tipo) {
-  const { selFunc, pa } = state;
+async function registrarPonto(tipo) {
+  const { selFunc } = state;
   if (!selFunc) { showAlert('Selecione um funcionário', 'r'); return; }
-  const id    = parseInt(selFunc);
-  const now   = new Date();
-  const agora = fmtTime(now);
-  const hoje  = now.toISOString().slice(0, 10);
-
-  if (tipo === 'saida') {
-    const at = pa[id] || {};
-    state.pontos = [...state.pontos, { id: Date.now(), fid: id, data: hoje, ...at, saida: agora, status: 'Completo' }];
-    const np = { ...pa }; delete np[id]; state.pa = np;
-    showAlert('Jornada finalizada!');
-  } else {
-    state.pa = { ...pa, [id]: { ...(pa[id] || {}), [tipo]: agora, data: hoje } };
-    showAlert(`${tipo === 'entrada' ? 'Entrada' : tipo === 'alSaida' ? 'Saída almoço' : 'Retorno'} às ${agora}`);
+  const id = parseInt(selFunc);
+  try {
+    const ponto = await api.marcarPonto(id, tipo);
+    await recarregarPontos();
+    if (tipo === 'saida') {
+      showAlert('Jornada finalizada!');
+    } else {
+      const label = tipo === 'entrada' ? 'Entrada' : tipo === 'alSaida' ? 'Saída almoço' : 'Retorno';
+      showAlert(`${label} às ${ponto[tipo]}`);
+    }
+  } catch (err) {
+    showAlert(err.message, 'r');
   }
-  import('../app.js').then(m => m.render());
 }

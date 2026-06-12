@@ -94,35 +94,41 @@ pontofacil/
 
 ---
 
-## 🚀 Como rodar localmente
+## 🚀 Como rodar
 
-O projeto usa ES Modules — não funciona via `file://`. Use um servidor local:
+### Full-stack (frontend + backend juntos) — recomendado
 
-**VS Code (recomendado)**
-1. Instale a extensão **Live Server**
-2. Clique com botão direito no `index.html`
-3. Selecione **Open with Live Server**
+O backend Spring Boot já serve o frontend e expõe a API na **mesma porta**. Por padrão usa um banco **H2 em memória** com dados de demonstração — não precisa instalar banco nenhum.
 
-**Python**
 ```bash
-git clone https://github.com/ramiresrodrigodev/pontofacil.git
-cd pontofacil
-python -m http.server 8080
+cd pontofacil          # pasta do projeto Maven
+./mvnw spring-boot:run  # Windows: mvnw.cmd spring-boot:run
 # Acesse http://localhost:8080
 ```
+
+**Login de demonstração:** `gestor@pontofacil.com` / `123456`
+
+> Para usar PostgreSQL em vez de H2, suba o banco e rode com o perfil `postgres`:
+> `./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres`
+> (ajuste url/usuário/senha em `application-postgres.properties`).
+
+### Só o frontend (sem backend)
+
+O frontend usa ES Modules — não funciona via `file://`. Sirva por um servidor estático
+(ex.: extensão **Live Server** do VS Code ou `py -m http.server 5500`). Nesse caso ele
+aponta automaticamente para a API em `http://localhost:8080`, que precisa estar rodando.
 
 ---
 
 ## 🗺️ Roadmap
 
-O MVP usa dados em memória — resetam ao recarregar. Próximos passos:
-
-- [ ] Backend com Java 21 + Spring Boot + PostgreSQL
-- [ ] Autenticação JWT por perfil (Gestor / Funcionário)
+- [x] Backend com Java 21 + Spring Boot + PostgreSQL (com H2 para dev)
+- [x] Autenticação JWT por perfil (Gestor / Funcionário)
+- [x] Persistência de dados em banco
+- [x] Suporte multi-empresa (escopo por empresa em todas as consultas)
 - [ ] Geolocalização no registro de ponto
 - [ ] Exportação de relatório em PDF e Excel
-- [ ] Persistência de dados em banco
-- [ ] Suporte multi-empresa
+- [ ] Perfil FUNCIONÁRIO no frontend (hoje o painel é do Gestor)
 
 ---
 

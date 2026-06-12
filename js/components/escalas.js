@@ -1,6 +1,7 @@
-import { state, showAlert } from '../state.js';
+import { state, showAlert, recarregarFuncionarios } from '../state.js';
 import { icon } from '../helpers.js';
 import { ESCALAS_DEF } from '../data.js';
+import * as api from '../api.js';
 
 export function buildEscalas() {
   const { funcs } = state;
@@ -78,11 +79,15 @@ export function buildEscalas() {
 
   const btnAplicar = document.createElement('button'); btnAplicar.className = 'btn btn-p btn-full';
   btnAplicar.append(icon('ti-check'), document.createTextNode(' Aplicar Escala'));
-  btnAplicar.addEventListener('click', () => {
+  btnAplicar.addEventListener('click', async () => {
     if (!feState) { showAlert('Selecione um funcionário', 'r'); return; }
-    state.funcs = state.funcs.map(f => f.id === parseInt(feState) ? { ...f, escala: neState } : f);
-    showAlert('Escala atualizada!');
-    import('../app.js').then(m => m.render());
+    const func = state.funcs.find(f => f.id === parseInt(feState));
+    if (!func) { showAlert('Funcionário não encontrado', 'r'); return; }
+    try {
+      await api.atualizarFuncionario(func.id, { ...func, escala: neState });
+      await recarregarFuncionarios();
+      showAlert('Escala atualizada!');
+    } catch (err) { showAlert(err.message, 'r'); }
   });
 
   cardAlt.append(title, fgFunc, fgEsc, btnAplicar);

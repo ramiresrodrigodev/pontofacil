@@ -1,6 +1,8 @@
-import { state }              from './state.js';
+import { state, carregarDados, setState } from './state.js';
 import { fmtTime }            from './helpers.js';
+import * as api               from './api.js';
 import { buildSidebar, buildTopbar, buildBottomNav } from './components/layout.js';
+import { buildLogin }         from './components/login.js';
 import { buildDashboard }     from './components/dashboard.js';
 import { buildFuncionarios }  from './components/funcionarios.js';
 import { buildPonto }         from './components/ponto.js';
@@ -21,6 +23,21 @@ const PAGES_MAP = {
 export function render() {
   const root = document.getElementById('app');
   root.innerHTML = '';
+
+  // ── Tela de login ──
+  if (state.view === 'login') {
+    root.appendChild(buildLogin());
+    return;
+  }
+
+  // ── Carregando dados ──
+  if (state.view === 'loading') {
+    const l = document.createElement('div');
+    l.className = 'login-wrap';
+    l.innerHTML = '<div class="login-card" style="text-align:center">Carregando dados…</div>';
+    root.appendChild(l);
+    return;
+  }
 
   const app  = document.createElement('div'); app.className = 'app';
   const main = document.createElement('div'); main.className = 'main';
@@ -59,4 +76,21 @@ setInterval(() => {
 }, 1000);
 
 // ── Inicialização ─────────────────────────────────────────────────
-render();
+async function init() {
+  if (api.isLogged()) {
+    state.view = 'loading';
+    render();
+    try {
+      await carregarDados();
+      state.view = 'app';
+    } catch (err) {
+      // Token inválido/expirado ou backend fora do ar
+      api.logout();
+      state.view = 'login';
+      state.loginErro = err.message;
+    }
+  }
+  render();
+}
+
+init();
