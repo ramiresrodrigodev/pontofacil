@@ -1,4 +1,4 @@
-import { state, setState, showAlert, recarregarPontos } from '../state.js';
+import { state, setState, showAlert, recarregarPontos, recarregarEmpresa } from '../state.js';
 import { av, badge, calcMins, fmtH, fmtTime, icon } from '../helpers.js';
 import * as api from '../api.js';
 
@@ -92,8 +92,87 @@ function buildRegistrar(funcs, pa, selFunc) {
   btnManual.append(icon('ti-edit'), document.createTextNode(' Registro Manual (Gestor)'));
   btnManual.addEventListener('click', () => setState({ modal:'manual', formManual:{ fid:'', data:'', entrada:'', alSaida:'', alRetorno:'', saida:'', obs:'' } }));
 
-  wrap.append(card, ...(statusCard ? [statusCard] : []), btnManual);
+  wrap.append(card, ...(statusCard ? [statusCard] : []), btnManual, buildGeofenceCard());
   return wrap;
+}
+
+// ── Card: cerca virtual (geofence) ────────────────────────────────
+function buildGeofenceCard() {
+  const empresa = state.empresa || {};
+  const ativo = !!empresa.geofenceAtivo;
+  let raio = empresa.raioMetros || 200;
+
+  const card = document.createElement('div');
+  card.className = 'card'; card.style.marginTop = '12px';
+
+  const title = document.createElement('div'); title.className = 'sec';
+  title.append(icon('ti-map-pin'), document.createTextNode(' Cerca virtual (local da empresa)'));
+  card.appendChild(title);
+
+  const statusRow = document.createElement('div');
+  statusRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap';
+  statusRow.appendChild(ativo ? badge('Ativa', 'bg') : badge('Desativada', 'by'));
+  const desc = document.createElement('span');
+  desc.style.cssText = 'font-size:12px;color:var(--text3)';
+  desc.textContent = ativo
+    ? `Ponto só dentro de ${empresa.raioMetros} m do local definido.`
+    : 'O ponto pode ser registrado de qualquer lugar.';
+  statusRow.appendChild(desc);
+  card.appendChild(statusRow);
+
+  if (ativo && empresa.latitude != null) {
+    const link = document.createElement('a');
+    link.href = `https://www.google.com/maps?q=${empresa.latitude},${empresa.longitude}`;
+    link.target = '_blank'; link.rel = 'noopener';
+    link.style.cssText = 'font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-bottom:10px';
+    link.append(icon('ti-external-link'), document.createTextNode(
+      `${empresa.latitude.toFixed(5)}, ${empresa.longitude.toFixed(5)}`));
+    card.appendChild(link);
+  }
+
+  // raio
+  const fgRaio = document.createElement('div'); fgRaio.className = 'fg';
+  const lblRaio = document.createElement('label'); lblRaio.className = 'fl'; lblRaio.textContent = 'Raio permitido (metros)';
+  const inpRaio = document.createElement('input'); inpRaio.className = 'inp'; inpRaio.type = 'number';
+  inpRaio.min = '20'; inpRaio.max = '50000'; inpRaio.value = String(raio);
+  inpRaio.addEventListener('change', e => { raio = parseInt(e.target.value) || 200; });
+  fgRaio.append(lblRaio, inpRaio);
+  card.appendChild(fgRaio);
+
+  // botões
+  const acoes = document.createElement('div');
+  acoes.style.cssText = 'display:flex;gap:8px;margin-top:4px';
+
+  const btnUsar = document.createElement('button');
+  btnUsar.className = 'btn btn-p'; btnUsar.style.flex = '1';
+  btnUsar.append(icon('ti-current-location'), document.createTextNode(ativo ? ' Atualizar local' : ' Usar minha localização'));
+  btnUsar.addEventListener('click', async () => {
+    try {
+      showAlert('Obtendo sua localização…', 'y');
+      const c = await api.obterLocalizacao();
+      await api.definirGeofence({ latitude: c.latitude, longitude: c.longitude, raioMetros: raio });
+      await recarregarEmpresa();
+      showAlert('Cerca virtual definida!');
+    } catch (err) { showAlert(err.message, 'r'); }
+  });
+  acoes.appendChild(btnUsar);
+
+  if (ativo) {
+    const btnOff = document.createElement('button');
+    btnOff.className = 'btn btn-d';
+    btnOff.append(icon('ti-x'), document.createTextNode(' Desativar'));
+    btnOff.addEventListener('click', async () => {
+      try {
+        await api.removerGeofence();
+        await recarregarEmpresa();
+        showAlert('Cerca virtual desativada.', 'r');
+      } catch (err) { showAlert(err.message, 'r'); }
+    });
+    acoes.appendChild(btnOff);
+  }
+
+  card.appendChild(acoes);
+  return card;
 }
 
 // ── Aba Equipe hoje ───────────────────────────────────────────────
@@ -203,11 +282,24 @@ function buildHistorico(funcs, pontos) {
 
 // ── Ação registrar ponto ──────────────────────────────────────────
 async function registrarPonto(tipo) {
-  const { selFunc } = state;
+  const { selFunc, empresa } = state;
   if (!selFunc) { showAlert('Selecione um funcionário', 'r'); return; }
   const id = parseInt(selFunc);
+
+  // Se a cerca virtual está ativa, captura a localização antes de marcar.
+  let coords = null;
+  if (empresa?.geofenceAtivo) {
+    try {
+      showAlert('Obtendo sua localização…', 'y');
+      coords = await api.obterLocalizacao();
+    } catch (err) {
+      showAlert(err.message, 'r');
+      return;
+    }
+  }
+
   try {
-    const ponto = await api.marcarPonto(id, tipo);
+    const ponto = await api.marcarPonto(id, tipo, coords);
     await recarregarPontos();
     if (tipo === 'saida') {
       showAlert('Jornada finalizada!');

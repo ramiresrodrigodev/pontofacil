@@ -48,6 +48,8 @@ function freshDemo() {
     funcs:  JSON.parse(JSON.stringify(INI_FUNCS)),
     pontos: JSON.parse(JSON.stringify(INI_PONTOS)),
     folgas: JSON.parse(JSON.stringify(INI_FOLGAS)),
+    empresa: { id: 1, nome: 'Minha Empresa (demo)', cnpj: '12.345.678/0001-90',
+               latitude: null, longitude: null, raioMetros: null, geofenceAtivo: false },
     seq: 1000,
   };
 }
@@ -66,6 +68,38 @@ const nowHHMM = () => {
   const d = new Date();
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 };
+
+/** Distância em metros entre dois pontos (Haversine). */
+function distanciaMetros(lat1, lon1, lat2, lon2) {
+  const R = 6371000, rad = x => x * Math.PI / 180;
+  const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Obtém a localização atual do dispositivo.
+ * @returns {Promise<{latitude:number, longitude:number, accuracy:number}>}
+ */
+export function obterLocalizacao() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocalização não suportada neste navegador.'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      err => {
+        const msg = err.code === 1 ? 'Permissão de localização negada.'
+                  : err.code === 3 ? 'Tempo esgotado ao obter a localização.'
+                  : 'Não foi possível obter sua localização.';
+        reject(new Error(msg));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  });
+}
 
 /** Requisição genérica com token e tratamento de erro. */
 async function request(path, { method = 'GET', body } = {}) {
@@ -223,16 +257,52 @@ export const getPontos = () =>
   DEMO ? Promise.resolve(clone(demo.pontos))
        : request('/api/pontos').then(l => l.map(pontoFromApi));
 
-export function marcarPonto(fid, tipo) {
+export function marcarPonto(fid, tipo, coords = null) {
   if (DEMO) {
+    const e = demo.empresa;
+    if (e.latitude != null && e.longitude != null && e.raioMetros != null) {
+      if (!coords) return Promise.reject(new Error('Ative a localização do dispositivo para registrar o ponto.'));
+      const dist = distanciaMetros(e.latitude, e.longitude, coords.latitude, coords.longitude);
+      if (dist > e.raioMetros) {
+        return Promise.reject(new Error(`Fora do local permitido: você está a ${Math.round(dist)} m da empresa (limite de ${e.raioMetros} m).`));
+      }
+    }
     const hoje = new Date().toISOString().slice(0, 10);
     let p = demo.pontos.find(x => x.fid === fid && x.data === hoje && x.status !== 'Completo');
     if (!p) { p = { id: nid(), fid, data: hoje, entrada: null, alSaida: null, alRetorno: null, saida: null, status: 'Incompleto', obs: '' }; demo.pontos.push(p); }
     p[tipo] = nowHHMM();
+    if (coords) { p.latitude = coords.latitude; p.longitude = coords.longitude; }
     p.status = p.saida ? 'Completo' : 'Incompleto';
     return Promise.resolve(clone(p));
   }
-  return request('/api/pontos/marcar', { method: 'POST', body: { funcionarioId: fid, tipo: TIPO_PONTO_API[tipo] || tipo } }).then(pontoFromApi);
+  return request('/api/pontos/marcar', { method: 'POST', body: {
+    funcionarioId: fid, tipo: TIPO_PONTO_API[tipo] || tipo,
+    latitude: coords ? coords.latitude : null,
+    longitude: coords ? coords.longitude : null,
+  } }).then(pontoFromApi);
+}
+
+// ── Empresa / cerca virtual (geofence) ────────────────────────────
+
+export function getEmpresa() {
+  if (DEMO) return Promise.resolve(clone(demo.empresa));
+  return request('/api/empresa');
+}
+
+export function definirGeofence({ latitude, longitude, raioMetros }) {
+  if (DEMO) {
+    Object.assign(demo.empresa, { latitude, longitude, raioMetros, geofenceAtivo: true });
+    return Promise.resolve(clone(demo.empresa));
+  }
+  return request('/api/empresa/geofence', { method: 'PUT', body: { latitude, longitude, raioMetros } });
+}
+
+export function removerGeofence() {
+  if (DEMO) {
+    Object.assign(demo.empresa, { latitude: null, longitude: null, raioMetros: null, geofenceAtivo: false });
+    return Promise.resolve(clone(demo.empresa));
+  }
+  return request('/api/empresa/geofence', { method: 'DELETE' });
 }
 
 export function criarPontoManual(m) {

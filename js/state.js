@@ -7,6 +7,7 @@ export let state = {
   funcs:        [],
   pontos:       [],
   folgas:       [],
+  empresa:      null,         // dados da empresa + cerca virtual (geofence)
   pa:           {},           // pontos do dia em andamento (derivado da API)
   alert:        null,
   clock:        new Date(),
@@ -65,15 +66,22 @@ function recalcPontosAtivos() {
 
 /** Carrega todos os dados do backend para o estado. */
 export async function carregarDados() {
-  const [funcs, pontos, folgas] = await Promise.all([
+  const [funcs, pontos, folgas, empresa] = await Promise.all([
     api.getFuncionarios(),
     api.getPontos(),
     api.getFolgas(),
+    api.getEmpresa(),
   ]);
-  state.funcs  = funcs;
-  state.pontos = pontos;
-  state.folgas = folgas;
+  state.funcs   = funcs;
+  state.pontos  = pontos;
+  state.folgas  = folgas;
+  state.empresa = empresa;
   recalcPontosAtivos();
+}
+
+/** Recarrega os dados da empresa (após alterar a cerca virtual). */
+export async function recarregarEmpresa() {
+  state.empresa = await api.getEmpresa();
 }
 
 /** Recarrega apenas a lista de pontos (após marcar/registrar). */
