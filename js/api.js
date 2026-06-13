@@ -1,6 +1,13 @@
 // ── Cliente da API PontoFácil ─────────────────────────────────────
 // Centraliza chamadas HTTP, autenticação e o mapeamento entre o
 // formato do backend (enums em MAIÚSCULAS) e o formato usado pela UI.
+//
+// MODO DEMONSTRAÇÃO: quando não há backend acessível (ex.: GitHub Pages,
+// que serve só estático), o app cai automaticamente para dados locais em
+// memória — restaurando o comportamento standalone do MVP. Com um backend
+// rodando, usa a API real normalmente.
+
+import { INI_FUNCS, INI_PONTOS, INI_FOLGAS } from './data.js';
 
 // Portas tipicas de servidores estaticos de desenvolvimento (Live Server, etc.)
 const DEV_STATIC_PORTS = ['5500', '5501', '3000', '8000', '5173', '4200'];
@@ -27,6 +34,38 @@ export function logout() {
   localStorage.removeItem('pf_token');
   localStorage.removeItem('pf_user');
 }
+
+// ── Modo demonstração (sem backend) ───────────────────────────────
+
+const DEMO_TOKEN = 'demo';
+let DEMO = getToken() === DEMO_TOKEN;
+let demo = DEMO ? freshDemo() : null;
+
+export const isDemo = () => DEMO;
+
+function freshDemo() {
+  return {
+    funcs:  JSON.parse(JSON.stringify(INI_FUNCS)),
+    pontos: JSON.parse(JSON.stringify(INI_PONTOS)),
+    folgas: JSON.parse(JSON.stringify(INI_FOLGAS)),
+    seq: 1000,
+  };
+}
+
+function entrarDemo() {
+  DEMO = true;
+  demo = freshDemo();
+  localStorage.setItem('pf_token', DEMO_TOKEN);
+  localStorage.setItem('pf_user', JSON.stringify({ nome: 'Gestor (demo)', perfil: 'GESTOR' }));
+  return { token: DEMO_TOKEN, nome: 'Gestor (demo)', perfil: 'GESTOR' };
+}
+
+const nid    = () => (++demo.seq);
+const clone  = x => JSON.parse(JSON.stringify(x));
+const nowHHMM = () => {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+};
 
 /** Requisição genérica com token e tratamento de erro. */
 async function request(path, { method = 'GET', body } = {}) {
@@ -117,45 +156,127 @@ const folgaFromApi = f => ({
 // ── Endpoints ─────────────────────────────────────────────────────
 
 export async function login(email, senha) {
-  const data = await request('/api/auth/login', { method: 'POST', body: { email, senha } });
+  let res;
+  try {
+    res = await fetch(apiBase() + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha }),
+    });
+  } catch (e) {
+    // Sem backend acessível (ex.: GitHub Pages) → modo demonstração
+    return entrarDemo();
+  }
+
+  // Se a resposta não é JSON, não é a nossa API (host estático devolvendo
+  // 404/405/501 em HTML, como o GitHub Pages) → modo demonstração.
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) return entrarDemo();
+
+  const data = await res.json();
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(data.message || 'E-mail ou senha inválidos');
+  }
+  if (!res.ok) {
+    throw new Error(data.message || `Erro ${res.status}`);
+  }
+
+  DEMO = false;
   localStorage.setItem('pf_token', data.token);
   localStorage.setItem('pf_user', JSON.stringify({ nome: data.nome, perfil: data.perfil }));
   return data;
 }
 
 export const getFuncionarios = () =>
-  request('/api/funcionarios').then(l => l.map(funcFromApi));
+  DEMO ? Promise.resolve(clone(demo.funcs))
+       : request('/api/funcionarios').then(l => l.map(funcFromApi));
 
-export const criarFuncionario = f =>
-  request('/api/funcionarios', { method: 'POST', body: funcToApi(f) }).then(funcFromApi);
+export function criarFuncionario(f) {
+  if (DEMO) {
+    const novo = { ...f, id: nid(), salario: Number(f.salario) || 0 };
+    demo.funcs.push(novo);
+    return Promise.resolve(clone(novo));
+  }
+  return request('/api/funcionarios', { method: 'POST', body: funcToApi(f) }).then(funcFromApi);
+}
 
-export const atualizarFuncionario = (id, f) =>
-  request(`/api/funcionarios/${id}`, { method: 'PUT', body: funcToApi(f) }).then(funcFromApi);
+export function atualizarFuncionario(id, f) {
+  if (DEMO) {
+    const atualizado = { ...f, id, salario: Number(f.salario) || 0 };
+    demo.funcs = demo.funcs.map(x => x.id === id ? atualizado : x);
+    return Promise.resolve(clone(atualizado));
+  }
+  return request(`/api/funcionarios/${id}`, { method: 'PUT', body: funcToApi(f) }).then(funcFromApi);
+}
 
-export const deletarFuncionario = id =>
-  request(`/api/funcionarios/${id}`, { method: 'DELETE' });
+export function deletarFuncionario(id) {
+  if (DEMO) {
+    demo.funcs  = demo.funcs.filter(x => x.id !== id);
+    demo.pontos = demo.pontos.filter(p => p.fid !== id);
+    demo.folgas = demo.folgas.filter(f => f.fid !== id);
+    return Promise.resolve(null);
+  }
+  return request(`/api/funcionarios/${id}`, { method: 'DELETE' });
+}
 
 export const getPontos = () =>
-  request('/api/pontos').then(l => l.map(pontoFromApi));
+  DEMO ? Promise.resolve(clone(demo.pontos))
+       : request('/api/pontos').then(l => l.map(pontoFromApi));
 
-export const marcarPonto = (fid, tipo) =>
-  request('/api/pontos/marcar', { method: 'POST', body: { funcionarioId: fid, tipo: TIPO_PONTO_API[tipo] || tipo } }).then(pontoFromApi);
+export function marcarPonto(fid, tipo) {
+  if (DEMO) {
+    const hoje = new Date().toISOString().slice(0, 10);
+    let p = demo.pontos.find(x => x.fid === fid && x.data === hoje && x.status !== 'Completo');
+    if (!p) { p = { id: nid(), fid, data: hoje, entrada: null, alSaida: null, alRetorno: null, saida: null, status: 'Incompleto', obs: '' }; demo.pontos.push(p); }
+    p[tipo] = nowHHMM();
+    p.status = p.saida ? 'Completo' : 'Incompleto';
+    return Promise.resolve(clone(p));
+  }
+  return request('/api/pontos/marcar', { method: 'POST', body: { funcionarioId: fid, tipo: TIPO_PONTO_API[tipo] || tipo } }).then(pontoFromApi);
+}
 
-export const criarPontoManual = m =>
-  request('/api/pontos/manual', { method: 'POST', body: {
+export function criarPontoManual(m) {
+  if (DEMO) {
+    const novo = {
+      id: nid(), fid: Number(m.fid), data: m.data,
+      entrada: m.entrada || null, alSaida: m.alSaida || null,
+      alRetorno: m.alRetorno || null, saida: m.saida || null,
+      status: m.saida ? 'Completo' : 'Incompleto', obs: m.obs || '',
+    };
+    demo.pontos.push(novo);
+    return Promise.resolve(clone(novo));
+  }
+  return request('/api/pontos/manual', { method: 'POST', body: {
     funcionarioId: Number(m.fid), data: m.data, entrada: m.entrada,
     alSaida: m.alSaida || null, alRetorno: m.alRetorno || null,
     saida: m.saida || null, observacao: m.obs || null,
   } }).then(pontoFromApi);
+}
 
 export const getFolgas = () =>
-  request('/api/folgas').then(l => l.map(folgaFromApi));
+  DEMO ? Promise.resolve(clone(demo.folgas))
+       : request('/api/folgas').then(l => l.map(folgaFromApi));
 
-export const criarFolga = f =>
-  request('/api/folgas', { method: 'POST', body: {
+export function criarFolga(f) {
+  if (DEMO) {
+    const novo = {
+      id: nid(), fid: Number(f.fid), tipo: f.tipo,
+      inicio: f.inicio, fim: f.fim || f.inicio,
+      status: 'Pendente', obs: f.obs || '',
+    };
+    demo.folgas.push(novo);
+    return Promise.resolve(clone(novo));
+  }
+  return request('/api/folgas', { method: 'POST', body: {
     funcionarioId: Number(f.fid), tipo: f.tipo, inicio: f.inicio,
     fim: f.fim || null, observacao: f.obs || null,
   } }).then(folgaFromApi);
+}
 
-export const atualizarStatusFolga = (id, statusPt) =>
-  request(`/api/folgas/${id}/status`, { method: 'PATCH', body: { status: FSTATUS_API[statusPt] || statusPt } }).then(folgaFromApi);
+export function atualizarStatusFolga(id, statusPt) {
+  if (DEMO) {
+    demo.folgas = demo.folgas.map(x => x.id === id ? { ...x, status: statusPt } : x);
+    return Promise.resolve(clone(demo.folgas.find(x => x.id === id)));
+  }
+  return request(`/api/folgas/${id}/status`, { method: 'PATCH', body: { status: FSTATUS_API[statusPt] || statusPt } }).then(folgaFromApi);
+}

@@ -1,7 +1,7 @@
 import { state, setState } from '../state.js';
 import { icon, fmtTime, ini } from '../helpers.js';
 import { PAGES } from '../data.js';
-import { logout } from '../api.js';
+import { logout, isDemo } from '../api.js';
 
 const LOGO_SVG = `
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,6 +93,15 @@ export function buildTopbar() {
   // Lado direito — clock + avatar
   const right = document.createElement('div');
   right.style.cssText = 'display:flex;align-items:center;gap:10px';
+
+  if (isDemo()) {
+    const demoChip = document.createElement('span');
+    demoChip.className = 'badge by';
+    demoChip.style.cssText = 'font-size:11px;font-weight:600';
+    demoChip.title = 'Sem backend conectado — usando dados locais de demonstração';
+    demoChip.textContent = 'Modo demo';
+    right.appendChild(demoChip);
+  }
 
   const clockWrap = document.createElement('div');
   clockWrap.style.cssText = 'display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);padding:5px 10px;border-radius:20px';
