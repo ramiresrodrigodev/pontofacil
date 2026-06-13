@@ -1,5 +1,6 @@
-import { state, setState } from '../state.js';
+import { state, setState, showAlert } from '../state.js';
 import { av, badge, calcMins, fmtH, icon, toMin } from '../helpers.js';
+import { exportarPDF, exportarExcel } from '../export.js';
 
 export function buildRelatorios() {
   const { funcs, pontos, folgas, relFunc, relMes } = state;
@@ -42,6 +43,40 @@ export function buildRelatorios() {
   const dt = pf.filter(p => p.status === 'Completo').length;
   const df = folgas.filter(f => f.fid === fid && f.status === 'Aprovado' && f.inicio.startsWith(relMes)).length;
   const bh = ext - fal;
+
+  // dados consolidados para exportação
+  const rel = {
+    funcNome: func.nome, funcCargo: func.cargo, mes: relMes,
+    tot, ext, fal, atr, dt, df, bh, registros: pf,
+  };
+
+  // ── Botões de exportação ──
+  const exportRow = document.createElement('div');
+  Object.assign(exportRow.style, { display: 'flex', gap: '8px', marginBottom: '12px' });
+
+  const exportar = async (fn, btn, rotulo) => {
+    const original = btn.innerHTML;
+    btn.disabled = true; btn.textContent = 'Gerando…';
+    try {
+      await fn(rel);
+    } catch (err) {
+      showAlert(err.message || `Falha ao exportar ${rotulo}.`, 'r');
+    } finally {
+      btn.disabled = false; btn.innerHTML = original;
+    }
+  };
+
+  const btnPdf = document.createElement('button');
+  btnPdf.className = 'btn btn-s'; btnPdf.style.flex = '1';
+  btnPdf.append(icon('ti-file-type-pdf'), document.createTextNode(' Exportar PDF'));
+  btnPdf.addEventListener('click', () => exportar(exportarPDF, btnPdf, 'PDF'));
+
+  const btnXls = document.createElement('button');
+  btnXls.className = 'btn btn-s'; btnXls.style.flex = '1';
+  btnXls.append(icon('ti-file-type-xls'), document.createTextNode(' Exportar Excel'));
+  btnXls.addEventListener('click', () => exportar(exportarExcel, btnXls, 'Excel'));
+
+  exportRow.append(btnPdf, btnXls);
 
   // ── Card cabeçalho ──
   const cardHeader = document.createElement('div'); cardHeader.className = 'card'; cardHeader.style.marginBottom = '12px';
@@ -133,6 +168,6 @@ export function buildRelatorios() {
   const card2 = document.createElement('div'); card2.className = 'card'; card2.style.padding = '0'; card2.appendChild(table);
   const dt2 = document.createElement('div'); dt2.className = 'dt'; dt2.appendChild(card2);
 
-  wrap.append(cardHeader, ml, dt2);
+  wrap.append(exportRow, cardHeader, ml, dt2);
   return wrap;
 }
